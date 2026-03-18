@@ -7,7 +7,6 @@
     "icon": "./assets/icon.png",
     "scheme": "motomoto",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "updates": {
       "enabled": false
     },
@@ -18,9 +17,11 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.motomoto.app"
+      "bundleIdentifier": "com.motomoto.app",
+      "newArchEnabled": true
     },
     "android": {
+      "newArchEnabled": true,
       "package": "com.motomoto.app",
       "adaptiveIcon": {
         "backgroundColor": "#0A0A0A",
@@ -46,7 +47,8 @@
         }
       ],
       "expo-image",
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
