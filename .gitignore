@@ -31,7 +31,21 @@ yarn-error.*
 *.pem
 
 # local env files
+.env
+.env.local
 .env*.local
+.env.development
+.env.production
+
+# Claude Code local settings (may contain API keys / permissions)
+.claude/settings.local.json
+
+# IDE
+.vscode/
+.idea/
+
+# Windows
+Thumbs.db
 
 # typescript
 *.tsbuildinfo
