@@ -8,6 +8,9 @@
     "scheme": "motomoto",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
+    "updates": {
+      "enabled": false
+    },
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -47,6 +50,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "bacb7a6e-2b59-411a-9a4d-f12ec35fd50e"
+      }
     }
   }
 }
