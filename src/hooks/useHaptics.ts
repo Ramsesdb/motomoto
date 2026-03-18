@@ -1,20 +1,8 @@
-import { Platform } from 'react-native';
-
 /**
- * Safe haptic feedback — no-ops until the dev client is rebuilt
- * with expo-haptics native module linked.
+ * Haptic feedback stub — disabled until dev client is rebuilt with expo-haptics.
+ * After rebuilding, replace this with the real implementation.
  */
 export function triggerHaptic(): void {
-  if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
-
-  // Lazy-import to avoid crash when module isn't linked
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const Haptics = require('expo-haptics') as typeof import('expo-haptics');
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {
-      // Native module not available — silently ignore
-    });
-  } catch {
-    // require itself failed — module not installed
-  }
+  // No-op: expo-haptics native module is not linked in the current dev client.
+  // Rebuild with `npx expo prebuild && npx expo run:android` to enable.
 }
