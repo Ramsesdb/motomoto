@@ -108,7 +108,7 @@ export default function InboxScreen() {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* ── Header ───────────────────────────────────────────────────────────── */}
-      <Animated.View entering={FadeInDown.duration(350).delay(50)} style={styles.header}>
+      <Animated.View entering={FadeInDown.duration(200).delay(50)} style={styles.header}>
         <Text style={styles.title}>Mensajes</Text>
         <View style={styles.countBadge}>
           <Text style={styles.countText}>{conversations.length}</Text>
@@ -146,7 +146,7 @@ export default function InboxScreen() {
       )}
 
       {/* ── Filters ────────────────────────────────────────────────────────── */}
-      <Animated.View entering={FadeInDown.duration(350).delay(120)}>
+      <Animated.View entering={FadeInDown.duration(200).delay(120)}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}

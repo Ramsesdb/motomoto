@@ -41,7 +41,7 @@ interface MetricCardProps {
 function MetricCard({ label, value, icon, tint, gradientEnd, trend, onPress, index, styles, colors }: MetricCardProps) {
   return (
     <Animated.View
-      entering={FadeInDown.duration(250).delay(100 + index * 50)}
+      entering={FadeInDown.duration(200).delay(100 + index * 50)}
       style={styles.metricPressable}
     >
       <Pressable onPress={onPress} style={styles.metricPressableInner}>
@@ -137,7 +137,7 @@ export default function HomeScreen() {
         }
       >
         {/* ── Header ─────────────────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(250).delay(0)} style={styles.header}>
+        <Animated.View entering={FadeInDown.duration(200).delay(0)} style={styles.header}>
           <View style={styles.headerText}>
             <Text style={styles.greeting}>{greeting},</Text>
             <Text style={styles.userName}>{firstName}</Text>
@@ -153,7 +153,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ── Metrics grid ───────────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(250).delay(50)}>
+        <Animated.View entering={FadeInDown.duration(200).delay(50)}>
           <View style={styles.sectionRow}>
             <Text style={styles.sectionTitle}>Resumen del día</Text>
             <Text style={styles.dateLabel}>{dateLabel}</Text>
@@ -215,11 +215,11 @@ export default function HomeScreen() {
         )}
 
         {/* ── Quick actions ──────────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(250).delay(300)}>
+        <Animated.View entering={FadeInDown.duration(200).delay(300)}>
           <Text style={styles.sectionTitle}>Acceso rápido</Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(250).delay(350)} style={styles.quickCol}>
+        <Animated.View entering={FadeInDown.duration(200).delay(350)} style={styles.quickCol}>
           <Pressable onPress={goToInbox}>
             <LinearGradient
               colors={[colors.accent.primary + '14', colors.accent.primary + '06']}

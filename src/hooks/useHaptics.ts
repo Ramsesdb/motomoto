@@ -1,18 +1,20 @@
 import { Platform } from 'react-native';
-import * as Haptics from 'expo-haptics';
 
 /**
- * Safe haptic feedback — silently no-ops when the native module
- * isn't available (e.g. dev client built before expo-haptics was installed,
- * or Android emulator without haptics support).
+ * Safe haptic feedback — no-ops until the dev client is rebuilt
+ * with expo-haptics native module linked.
  */
-export function triggerHaptic(
-  style: Haptics.ImpactFeedbackStyle = Haptics.ImpactFeedbackStyle.Light,
-): void {
-  if (Platform.OS === 'web') return;
+export function triggerHaptic(): void {
+  if (Platform.OS !== 'ios' && Platform.OS !== 'android') return;
+
+  // Lazy-import to avoid crash when module isn't linked
   try {
-    void Haptics.impactAsync(style);
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const Haptics = require('expo-haptics') as typeof import('expo-haptics');
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {
+      // Native module not available — silently ignore
+    });
   } catch {
-    // Native module not linked yet — ignore
+    // require itself failed — module not installed
   }
 }

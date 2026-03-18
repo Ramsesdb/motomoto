@@ -28,10 +28,8 @@ const TAB_META: Record<string, TabMeta> = {
   home: { icon: 'home-outline', activeIcon: 'home', label: 'Inicio' },
   inbox: { icon: 'message-outline', activeIcon: 'message', label: 'Mensajes' },
   ai: { icon: 'robot-outline', activeIcon: 'robot', label: 'IA' },
-  team: { icon: 'account-group-outline', activeIcon: 'account-group', label: 'Equipo' },
   reports: { icon: 'chart-bar', activeIcon: 'chart-bar', label: 'Reportes' },
   profile: { icon: 'account-circle-outline', activeIcon: 'account-circle', label: 'Perfil' },
-  settings: { icon: 'cog-outline', activeIcon: 'cog', label: 'Ajustes' },
 };
 
 interface TabItemProps {
@@ -83,16 +81,27 @@ function TabItem({ routeName, isFocused, onPress, onLongPress, colors, styles }:
   );
 }
 
-export function TabBar({ state, navigation }: BottomTabBarProps) {
+const HIDDEN_TABS = new Set(['team', 'settings']);
+
+export function TabBar({ state, navigation, descriptors }: BottomTabBarProps) {
   const colors = useColors();
   const isDark = useIsDark();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const paddingBottom = Math.max(insets.bottom, spacing[2]);
 
+  // Filter out routes hidden via href: null or in the HIDDEN_TABS set
+  const visibleRoutes = state.routes.filter((route) => {
+    if (HIDDEN_TABS.has(route.name)) return false;
+    const descriptor = descriptors[route.key];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const href = (descriptor?.options as any)?.href;
+    return href !== null;
+  });
+
   const content = (
     <View style={[styles.inner, { paddingBottom }]}>
-      {state.routes.map((route) => {
+      {visibleRoutes.map((route) => {
         const isFocused = state.routes[state.index]?.key === route.key;
         function onPress() {
           const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });

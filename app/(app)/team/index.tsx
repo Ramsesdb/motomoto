@@ -44,7 +44,7 @@ function MemberRow({ item, index }: { item: User; index: number }) {
   const tint = roleTint[item.role] ?? colors.accent.primary;
 
   return (
-    <Animated.View entering={FadeInDown.duration(350).delay(200 + index * 60)}>
+    <Animated.View entering={FadeInDown.duration(200).delay(200 + index * 60)}>
       <View style={memberStyles.row}>
         <Avatar name={item.name} uri={item.avatarUrl} size={44} status={item.status} />
         <View style={memberStyles.info}>
@@ -183,7 +183,7 @@ export default function TeamScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Animated.View entering={FadeInDown.duration(350).delay(50)} style={styles.header}>
+      <Animated.View entering={FadeInDown.duration(200).delay(50)} style={styles.header}>
         <Text style={styles.title}>Equipo</Text>
       </Animated.View>
 

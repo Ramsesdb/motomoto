@@ -35,7 +35,7 @@ function ReportMetric({ icon, label, value, tint, gradientEnd, trend, index }: R
 
   return (
     <Animated.View
-      entering={FadeInDown.duration(350).delay(150 + index * 60)}
+      entering={FadeInDown.duration(200).delay(150 + index * 60)}
       style={metricStyles.wrapper}
     >
       <LinearGradient
@@ -160,7 +160,7 @@ function ReportsContent() {
         />
       }
     >
-      <Animated.View entering={FadeInDown.duration(350).delay(80)}>
+      <Animated.View entering={FadeInDown.duration(200).delay(80)}>
         <View style={styles.periodPill}>
           <MaterialCommunityIcons name="calendar-range" size={14} color={colors.text.secondary} />
           <Text style={styles.periodLabel}>Periodo actual · Todos los datos</Text>
@@ -246,7 +246,7 @@ export default function ReportsScreen() {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Animated.View entering={FadeInDown.duration(350).delay(50)} style={styles.header}>
+      <Animated.View entering={FadeInDown.duration(200).delay(50)} style={styles.header}>
         <Text style={styles.title}>Reportes</Text>
       </Animated.View>
 

@@ -81,12 +81,12 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* -- Header --------------------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(250).delay(50)}>
+        <Animated.View entering={FadeInDown.duration(200).delay(50)}>
           <Text style={styles.screenTitle}>Perfil</Text>
         </Animated.View>
 
         {/* -- Identity card -------------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(250).delay(120)}>
+        <Animated.View entering={FadeInDown.duration(200).delay(120)}>
           <LinearGradient
             colors={[colors.accent.primary + '12', 'transparent']}
             start={{ x: 0, y: 0 }}
@@ -129,7 +129,7 @@ export default function ProfileScreen() {
         </Animated.View>
 
         {/* -- Account section ------------------------------------------------ */}
-        <Animated.View entering={FadeInDown.duration(250).delay(150)}>
+        <Animated.View entering={FadeInDown.duration(200).delay(150)}>
           <Text style={styles.sectionLabel}>CUENTA</Text>
           <GlassCard style={styles.section}>
             <SettingsRow
@@ -154,7 +154,7 @@ export default function ProfileScreen() {
 
         {/* -- Management section (team + settings) ----------------------------- */}
         {isManager && (
-          <Animated.View entering={FadeInDown.duration(250).delay(200)}>
+          <Animated.View entering={FadeInDown.duration(200).delay(200)}>
             <Text style={styles.sectionLabel}>GESTIÓN</Text>
             <GlassCard style={styles.section}>
               <SettingsRow
@@ -177,7 +177,7 @@ export default function ProfileScreen() {
         )}
 
         {/* -- Preferences section -------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(250).delay(340)}>
+        <Animated.View entering={FadeInDown.duration(200).delay(340)}>
           <Text style={styles.sectionLabel}>PREFERENCIAS</Text>
           <GlassCard style={styles.section}>
             <SettingsRow
@@ -204,7 +204,7 @@ export default function ProfileScreen() {
         </Animated.View>
 
         {/* -- Sign out ------------------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(250).delay(440)}>
+        <Animated.View entering={FadeInDown.duration(200).delay(440)}>
           <Pressable onPress={handleSignOut} style={styles.signOutButton}>
             <MaterialCommunityIcons name="logout" size={18} color={colors.accent.error} />
             <Text style={styles.signOutLabel}>Cerrar sesion</Text>
