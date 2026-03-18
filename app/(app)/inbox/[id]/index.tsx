@@ -258,9 +258,10 @@ function EmptyChat() {
   return (
     <View style={styles.emptyChat}>
       <View style={styles.emptyChatIcon}>
-        <MaterialCommunityIcons name="message-text-outline" size={32} color={colors.text.tertiary} />
+        <MaterialCommunityIcons name="message-reply-text-outline" size={32} color={colors.text.tertiary} />
       </View>
-      <Text style={styles.emptyChatText}>Inicia la conversación</Text>
+      <Text style={styles.emptyChatTitle}>Sin mensajes aún</Text>
+      <Text style={styles.emptyChatText}>Envía el primer mensaje para iniciar la conversación</Text>
     </View>
   );
 }
@@ -371,8 +372,14 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  emptyChatTitle: {
+    ...typography.headline,
+    color: colors.text.primary,
+  },
   emptyChatText: {
     ...typography.subhead,
     color: colors.text.tertiary,
+    textAlign: 'center',
+    paddingHorizontal: spacing[8],
   },
 });

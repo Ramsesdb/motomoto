@@ -9,6 +9,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
 
 import { useColors, useIsDark } from '@/hooks/useColors';
 import { spacing, typography, borderRadius } from '@/design';
@@ -57,7 +58,10 @@ function TabItem({ routeName, isFocused, onPress, onLongPress, colors, styles }:
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPress();
+      }}
       onLongPress={onLongPress}
       onPressIn={() => { scale.value = withSpring(0.85, SPRING); }}
       onPressOut={() => { scale.value = withSpring(1, SPRING); }}

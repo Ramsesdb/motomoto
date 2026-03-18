@@ -1,5 +1,8 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 
 import { useColors } from '@/hooks/useColors';
 import { spacing, typography, borderRadius } from '@/design';
@@ -12,6 +15,8 @@ import type { Conversation } from '@/types';
 interface ConversationCardProps {
   conversation: Conversation;
   onPress: (conversationId: string) => void;
+  onArchive?: (conversationId: string) => void;
+  onPin?: (conversationId: string) => void;
 }
 
 function formatTime(iso: string): string {
@@ -37,14 +42,58 @@ function getPriorityColor(priority: string, colors: ThemeColors): string | undef
   return undefined;
 }
 
-export function ConversationCard({ conversation, onPress }: ConversationCardProps) {
+function RightActions({ colors, onArchive }: { colors: ThemeColors; onArchive?: () => void }) {
+  return (
+    <Pressable
+      onPress={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        onArchive?.();
+      }}
+      style={[actionStyles.action, { backgroundColor: colors.accent.warning }]}
+    >
+      <MaterialCommunityIcons name="archive-outline" size={22} color="#FFFFFF" />
+      <Text style={actionStyles.label}>Archivar</Text>
+    </Pressable>
+  );
+}
+
+function LeftActions({ colors, onPin }: { colors: ThemeColors; onPin?: () => void }) {
+  return (
+    <Pressable
+      onPress={() => {
+        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        onPin?.();
+      }}
+      style={[actionStyles.action, { backgroundColor: colors.accent.primary }]}
+    >
+      <MaterialCommunityIcons name="pin-outline" size={22} color="#FFFFFF" />
+      <Text style={actionStyles.label}>Fijar</Text>
+    </Pressable>
+  );
+}
+
+const actionStyles = StyleSheet.create({
+  action: {
+    width: 80,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 2,
+  },
+  label: {
+    ...typography.caption2,
+    color: '#FFFFFF',
+    fontWeight: '600',
+  },
+});
+
+export function ConversationCard({ conversation, onPress, onArchive, onPin }: ConversationCardProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const { contact, lastMessage, unreadCount, channelType, updatedAt, priority } = conversation;
   const hasUnread = unreadCount > 0;
   const priorityColor = getPriorityColor(priority, colors);
 
-  return (
+  const cardContent = (
     <Pressable onPress={() => onPress(conversation.id)} style={styles.pressable}>
       <View style={styles.row}>
         {priorityColor !== undefined && (
@@ -83,6 +132,18 @@ export function ConversationCard({ conversation, onPress }: ConversationCardProp
       </View>
       <View style={styles.separator} />
     </Pressable>
+  );
+
+  return (
+    <Swipeable
+      renderRightActions={() => <RightActions colors={colors} onArchive={() => onArchive?.(conversation.id)} />}
+      renderLeftActions={() => <LeftActions colors={colors} onPin={() => onPin?.(conversation.id)} />}
+      overshootRight={false}
+      overshootLeft={false}
+      friction={2}
+    >
+      {cardContent}
+    </Swipeable>
   );
 }
 

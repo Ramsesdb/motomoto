@@ -5,6 +5,7 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -70,6 +71,8 @@ export default function InboxScreen() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showSearch, setShowSearch] = useState(false);
 
   useEffect(() => {
     loadConversations().finally(() => setIsLoading(false));
@@ -82,12 +85,18 @@ export default function InboxScreen() {
   }, [loadConversations]);
 
   const filtered = useMemo<Conversation[]>(() => {
+    const q = searchQuery.trim().toLowerCase();
     return conversations.filter((c) => {
       if (filters.status !== undefined && c.status !== filters.status) return false;
       if (filters.channelType !== undefined && c.channelType !== filters.channelType) return false;
+      if (q.length > 0) {
+        const nameMatch = c.contact.name.toLowerCase().includes(q);
+        const msgMatch = c.lastMessage?.content.toLowerCase().includes(q) ?? false;
+        if (!nameMatch && !msgMatch) return false;
+      }
       return true;
     });
-  }, [conversations, filters]);
+  }, [conversations, filters, searchQuery]);
 
   function handleConversationPress(conversationId: string) {
     router.push(`/inbox/${conversationId}` as never);
@@ -104,7 +113,37 @@ export default function InboxScreen() {
         <View style={styles.countBadge}>
           <Text style={styles.countText}>{conversations.length}</Text>
         </View>
+        <View style={styles.headerSpacer} />
+        <Pressable onPress={() => setShowSearch((v) => !v)} style={styles.searchToggle}>
+          <MaterialCommunityIcons
+            name={showSearch ? 'close' : 'magnify'}
+            size={22}
+            color={colors.text.secondary}
+          />
+        </Pressable>
       </Animated.View>
+
+      {/* ── Search bar ────────────────────────────────────────────────────── */}
+      {showSearch && (
+        <Animated.View entering={FadeInDown.duration(250)} style={styles.searchBar}>
+          <MaterialCommunityIcons name="magnify" size={18} color={colors.text.tertiary} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Buscar por nombre o mensaje..."
+            placeholderTextColor={colors.text.placeholder}
+            value={searchQuery}
+            onChangeText={setSearchQuery}
+            autoFocus
+            returnKeyType="search"
+            autoCorrect={false}
+          />
+          {searchQuery.length > 0 && (
+            <Pressable onPress={() => setSearchQuery('')}>
+              <MaterialCommunityIcons name="close-circle" size={16} color={colors.text.tertiary} />
+            </Pressable>
+          )}
+        </Animated.View>
+      )}
 
       {/* ── Filters ────────────────────────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.duration(350).delay(120)}>
@@ -204,14 +243,19 @@ export default function InboxScreen() {
 function EmptyState() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
+  const { clearFilters } = useInboxStore(useShallow((s) => ({ clearFilters: s.clearFilters })));
 
   return (
     <View style={styles.empty}>
       <View style={styles.emptyIconWrapper}>
-        <MaterialCommunityIcons name="message-text-outline" size={40} color={colors.text.tertiary} />
+        <MaterialCommunityIcons name="message-text-clock-outline" size={40} color={colors.text.tertiary} />
       </View>
       <Text style={styles.emptyTitle}>Sin conversaciones</Text>
-      <Text style={styles.emptySubtitle}>No hay conversaciones con estos filtros</Text>
+      <Text style={styles.emptySubtitle}>No hay conversaciones con estos filtros.</Text>
+      <Pressable onPress={clearFilters} style={styles.emptyCta}>
+        <MaterialCommunityIcons name="filter-remove-outline" size={16} color={colors.accent.primary} />
+        <Text style={styles.emptyCtaText}>Limpiar filtros</Text>
+      </Pressable>
     </View>
   );
 }
@@ -248,6 +292,36 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     ...typography.caption1,
     color: colors.accent.primary,
     fontWeight: '700',
+  },
+  headerSpacer: {
+    flex: 1,
+  },
+  searchToggle: {
+    width: 36,
+    height: 36,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.background.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    marginHorizontal: spacing[4],
+    marginBottom: spacing[2],
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.separator.transparent,
+  },
+  searchInput: {
+    flex: 1,
+    ...typography.subhead,
+    color: colors.text.primary,
+    paddingVertical: spacing[1],
   },
   filterRow: {
     flexDirection: 'row',
@@ -311,5 +385,20 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   emptySubtitle: {
     ...typography.subhead,
     color: colors.text.tertiary,
+  },
+  emptyCta: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    marginTop: spacing[2],
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accent.primaryMuted,
+  },
+  emptyCtaText: {
+    ...typography.subhead,
+    fontWeight: '600',
+    color: colors.accent.primary,
   },
 });

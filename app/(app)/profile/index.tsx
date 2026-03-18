@@ -89,12 +89,17 @@ export default function ProfileScreen() {
             style={styles.identityGradient}
           >
             <View style={styles.identityCard}>
-              <Avatar
-                name={user?.name ?? '?'}
-                uri={user?.avatarUrl}
-                size={80}
-                status={user?.status}
-              />
+              <Pressable onPress={() => { /* TODO: image picker */ }} style={styles.avatarWrapper}>
+                <Avatar
+                  name={user?.name ?? '?'}
+                  uri={user?.avatarUrl}
+                  size={80}
+                  status={user?.status}
+                />
+                <View style={styles.cameraOverlay}>
+                  <MaterialCommunityIcons name="camera" size={14} color={colors.text.primary} />
+                </View>
+              </Pressable>
               <Text style={styles.userName}>{user?.name ?? '—'}</Text>
               <Text style={styles.userEmail}>{user?.email ?? '—'}</Text>
               <View style={styles.badgeRow}>
@@ -267,6 +272,22 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: spacing[8],
     paddingHorizontal: spacing[4],
     gap: spacing[2],
+  },
+  avatarWrapper: {
+    position: 'relative',
+  },
+  cameraOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accent.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: colors.background.primary,
   },
   userName: {
     ...typography.title2,
