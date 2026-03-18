@@ -91,7 +91,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <View style={[styles.container, { top: insets.top + spacing[2] }]} pointerEvents="box-none">
+      <View style={[styles.container, { top: insets.top + spacing[12] }]} pointerEvents="box-none">
         {toasts.map((toast) => (
           <Animated.View
             key={toast.id}

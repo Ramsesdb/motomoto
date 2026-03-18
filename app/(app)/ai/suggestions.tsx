@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -7,7 +7,6 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { Pressable } from '@/components/ui/Pressable';
-import { GlassCard } from '@/components/ui/GlassCard';
 import { useToast } from '@/components/ui/Toast';
 import { useColors } from '@/hooks/useColors';
 import { spacing, typography, borderRadius } from '@/design';
@@ -34,8 +33,8 @@ export default function AISuggestionsScreen() {
         <Text style={styles.title}>Sugerencias IA</Text>
         <View style={styles.backButton} />
       </View>
-      <View style={styles.body}>
-        <Animated.View entering={FadeInDown.duration(400).delay(100)}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <Animated.View entering={FadeInDown.duration(250).delay(0)}>
           <LinearGradient
             colors={[colors.accent.purple + '15', 'transparent']}
             start={{ x: 0.5, y: 0 }}
@@ -43,27 +42,25 @@ export default function AISuggestionsScreen() {
             style={styles.iconGradient}
           >
             <View style={[styles.iconCircle, { backgroundColor: colors.accent.purpleMuted }]}>
-              <MaterialCommunityIcons name="comment-text-multiple-outline" size={40} color={colors.accent.purple} />
+              <MaterialCommunityIcons name="comment-text-multiple-outline" size={28} color={colors.accent.purple} />
             </View>
           </LinearGradient>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(400).delay(200)} style={styles.textBlock}>
+        <Animated.View entering={FadeInDown.duration(250).delay(80)} style={styles.textBlock}>
           <Text style={styles.featureTitle}>Respuestas inteligentes</Text>
           <Text style={styles.featureDesc}>
             La IA analizará el contexto de cada conversación y sugerirá respuestas personalizadas en tiempo real, adaptadas al tono y estilo de tu marca.
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(400).delay(300)}>
-          <GlassCard style={styles.features}>
-            <FeatureRow icon="lightning-bolt" text="Sugerencias en menos de 2 segundos" colors={colors} styles={styles} />
-            <FeatureRow icon="account-heart-outline" text="Adaptadas al perfil del cliente" colors={colors} styles={styles} />
-            <FeatureRow icon="translate" text="Soporte multiidioma automático" colors={colors} styles={styles} />
-          </GlassCard>
+        <Animated.View entering={FadeInDown.duration(250).delay(160)} style={styles.features}>
+          <FeatureRow icon="lightning-bolt" text="Sugerencias en menos de 2 segundos" colors={colors} styles={styles} />
+          <FeatureRow icon="account-heart-outline" text="Adaptadas al perfil del cliente" colors={colors} styles={styles} />
+          <FeatureRow icon="translate" text="Soporte multiidioma automático" colors={colors} styles={styles} />
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(400).delay(400)}>
+        <Animated.View entering={FadeInDown.duration(250).delay(240)}>
           <Pressable
             onPress={handleNotify}
             disabled={subscribed}
@@ -79,7 +76,7 @@ export default function AISuggestionsScreen() {
             </Text>
           </Pressable>
         </Animated.View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -102,13 +99,21 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   backButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   title: { flex: 1, ...typography.headline, color: colors.text.primary, textAlign: 'center' },
-  body: { flex: 1, padding: spacing[6], alignItems: 'center', justifyContent: 'center', gap: spacing[6] },
-  iconGradient: { width: 140, height: 140, borderRadius: borderRadius['3xl'], alignItems: 'center', justifyContent: 'center' },
-  iconCircle: { width: 80, height: 80, borderRadius: borderRadius.full, alignItems: 'center', justifyContent: 'center' },
+  scrollContent: { alignItems: 'center', padding: spacing[6], paddingTop: spacing[8], gap: spacing[5] },
+  iconGradient: { width: 100, height: 100, borderRadius: borderRadius['2xl'], alignItems: 'center', justifyContent: 'center' },
+  iconCircle: { width: 56, height: 56, borderRadius: borderRadius.full, alignItems: 'center', justifyContent: 'center' },
   textBlock: { alignItems: 'center', gap: spacing[2] },
-  featureTitle: { ...typography.title2, fontWeight: '700', color: colors.text.primary, textAlign: 'center' },
+  featureTitle: { ...typography.title3, fontWeight: '700', color: colors.text.primary, textAlign: 'center' },
   featureDesc: { ...typography.subhead, color: colors.text.secondary, textAlign: 'center', lineHeight: 22 },
-  features: { alignSelf: 'stretch', padding: spacing[4], gap: spacing[3] },
+  features: {
+    alignSelf: 'stretch',
+    padding: spacing[4],
+    gap: spacing[3],
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.separator.transparent,
+  },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: spacing[3] },
   featureRowText: { flex: 1, ...typography.subhead, color: colors.text.secondary },
   notifyButton: {
