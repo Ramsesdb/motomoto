@@ -1,6 +1,7 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   FlatList,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +16,7 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useInboxStore } from '@/store/useInboxStore';
 import { Pressable } from '@/components/ui/Pressable';
 import { ConversationCard } from '@/components/messaging/ConversationCard';
+import { SkeletonConversationList } from '@/components/ui/Skeleton';
 import { useColors } from '@/hooks/useColors';
 import { spacing, typography, borderRadius } from '@/design';
 import type { ThemeColors } from '@/design';
@@ -66,8 +68,17 @@ export default function InboxScreen() {
     }))
   );
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   useEffect(() => {
-    loadConversations();
+    loadConversations().finally(() => setIsLoading(false));
+  }, [loadConversations]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadConversations();
+    setRefreshing(false);
   }, [loadConversations]);
 
   const filtered = useMemo<Conversation[]>(() => {
@@ -161,6 +172,9 @@ export default function InboxScreen() {
       </Animated.View>
 
       {/* ── List ─────────────────────────────────────────────────────────────── */}
+      {isLoading ? (
+        <SkeletonConversationList />
+      ) : (
       <FlatList
         data={filtered}
         keyExtractor={(item) => item.id}
@@ -173,7 +187,16 @@ export default function InboxScreen() {
         ListEmptyComponent={<EmptyState />}
         contentContainerStyle={styles.listContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent.primary}
+            colors={[colors.accent.primary]}
+          />
+        }
       />
+      )}
     </SafeAreaView>
   );
 }

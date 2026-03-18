@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -17,6 +18,7 @@ import { useInboxStore } from '@/store/useInboxStore';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { Pressable } from '@/components/ui/Pressable';
+import { SkeletonMetricsGrid } from '@/components/ui/Skeleton';
 import { useColors } from '@/hooks/useColors';
 import { spacing, typography, borderRadius } from '@/design';
 import type { ThemeColors } from '@/design';
@@ -29,12 +31,14 @@ interface MetricCardProps {
   icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
   tint: string;
   gradientEnd: string;
+  trend?: { direction: 'up' | 'down'; percent: number };
   onPress?: () => void;
   index: number;
   styles: ReturnType<typeof createStyles>;
+  colors: ThemeColors;
 }
 
-function MetricCard({ label, value, icon, tint, gradientEnd, onPress, index, styles }: MetricCardProps) {
+function MetricCard({ label, value, icon, tint, gradientEnd, trend, onPress, index, styles, colors }: MetricCardProps) {
   return (
     <Animated.View
       entering={FadeInDown.duration(400).delay(200 + index * 80)}
@@ -48,8 +52,22 @@ function MetricCard({ label, value, icon, tint, gradientEnd, onPress, index, sty
           style={styles.metricGradient}
         >
           <View style={styles.metricCardContent}>
-            <View style={[styles.metricIcon, { backgroundColor: tint + '25' }]}>
-              <MaterialCommunityIcons name={icon} size={20} color={tint} />
+            <View style={styles.metricTopRow}>
+              <View style={[styles.metricIcon, { backgroundColor: tint + '25' }]}>
+                <MaterialCommunityIcons name={icon} size={20} color={tint} />
+              </View>
+              {trend !== undefined && (
+                <View style={[styles.trendPill, { backgroundColor: (trend.direction === 'up' ? colors.accent.success : colors.accent.error) + '18' }]}>
+                  <MaterialCommunityIcons
+                    name={trend.direction === 'up' ? 'trending-up' : 'trending-down'}
+                    size={12}
+                    color={trend.direction === 'up' ? colors.accent.success : colors.accent.error}
+                  />
+                  <Text style={[styles.trendText, { color: trend.direction === 'up' ? colors.accent.success : colors.accent.error }]}>
+                    {trend.percent}%
+                  </Text>
+                </View>
+              )}
             </View>
             <Text style={[styles.metricValue, { color: tint }]}>{value}</Text>
             <Text style={styles.metricLabel} numberOfLines={2}>{label}</Text>
@@ -75,8 +93,17 @@ export default function HomeScreen() {
     }))
   );
 
+  const [isLoading, setIsLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
   useEffect(() => {
-    loadConversations();
+    loadConversations().finally(() => setIsLoading(false));
+  }, [loadConversations]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadConversations();
+    setRefreshing(false);
   }, [loadConversations]);
 
   const metrics = useMemo(() => {
@@ -93,12 +120,21 @@ export default function HomeScreen() {
 
   const greeting = getGreeting();
   const firstName = user?.name.split(' ')[0] ?? 'equipo';
+  const dateLabel = getDateLabel();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={colors.accent.primary}
+            colors={[colors.accent.primary]}
+          />
+        }
       >
         {/* ── Header ─────────────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.duration(400).delay(50)} style={styles.header}>
@@ -118,9 +154,15 @@ export default function HomeScreen() {
 
         {/* ── Metrics grid ───────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.duration(400).delay(120)}>
-          <Text style={styles.sectionTitle}>Resumen del día</Text>
+          <View style={styles.sectionRow}>
+            <Text style={styles.sectionTitle}>Resumen del día</Text>
+            <Text style={styles.dateLabel}>{dateLabel}</Text>
+          </View>
         </Animated.View>
 
+        {isLoading ? (
+          <SkeletonMetricsGrid />
+        ) : (
         <View style={styles.metricsGrid}>
           <MetricCard
             label="Total conversaciones"
@@ -128,9 +170,11 @@ export default function HomeScreen() {
             icon="message-text-outline"
             tint={colors.accent.primary}
             gradientEnd={colors.accent.info}
+            trend={{ direction: 'up', percent: 12 }}
             onPress={goToInbox}
             index={0}
             styles={styles}
+            colors={colors}
           />
           <MetricCard
             label="Mensajes sin leer"
@@ -138,9 +182,11 @@ export default function HomeScreen() {
             icon="bell-badge-outline"
             tint={colors.accent.warning}
             gradientEnd={colors.accent.error}
+            trend={metrics.unread > 0 ? { direction: 'up', percent: 8 } : undefined}
             onPress={goToInbox}
             index={1}
             styles={styles}
+            colors={colors}
           />
           <MetricCard
             label="Conversaciones abiertas"
@@ -148,9 +194,11 @@ export default function HomeScreen() {
             icon="message-outline"
             tint={colors.accent.success}
             gradientEnd={colors.accent.info}
+            trend={{ direction: 'down', percent: 5 }}
             onPress={goToInbox}
             index={2}
             styles={styles}
+            colors={colors}
           />
           <MetricCard
             label="Pendientes de respuesta"
@@ -161,8 +209,10 @@ export default function HomeScreen() {
             onPress={goToInbox}
             index={3}
             styles={styles}
+            colors={colors}
           />
         </View>
+        )}
 
         {/* ── Quick actions ──────────────────────────────────────────────────── */}
         <Animated.View entering={FadeInDown.duration(400).delay(550)}>
@@ -214,6 +264,13 @@ function getGreeting(): string {
   return 'Buenas noches';
 }
 
+function getDateLabel(): string {
+  const now = new Date();
+  const days = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+  const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+  return `${days[now.getDay()]} ${now.getDate()} ${months[now.getMonth()]}`;
+}
+
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
@@ -249,9 +306,18 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
 
   /* Section */
+  sectionRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+  },
   sectionTitle: {
     ...typography.headline,
     color: colors.text.primary,
+  },
+  dateLabel: {
+    ...typography.caption1,
+    color: colors.text.tertiary,
   },
 
   /* Metrics */
@@ -277,6 +343,23 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     padding: spacing[4],
     gap: spacing[2],
     minHeight: 120,
+  },
+  metricTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  trendPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  trendText: {
+    ...typography.caption2,
+    fontWeight: '700',
   },
   metricIcon: {
     width: 36,

@@ -31,15 +31,25 @@ function formatTime(iso: string): string {
   return `${dd}/${mo}`;
 }
 
+function getPriorityColor(priority: string, colors: ThemeColors): string | undefined {
+  if (priority === 'urgent') return colors.accent.error;
+  if (priority === 'high') return colors.accent.warning;
+  return undefined;
+}
+
 export function ConversationCard({ conversation, onPress }: ConversationCardProps) {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const { contact, lastMessage, unreadCount, channelType, updatedAt } = conversation;
+  const { contact, lastMessage, unreadCount, channelType, updatedAt, priority } = conversation;
   const hasUnread = unreadCount > 0;
+  const priorityColor = getPriorityColor(priority, colors);
 
   return (
     <Pressable onPress={() => onPress(conversation.id)} style={styles.pressable}>
       <View style={styles.row}>
+        {priorityColor !== undefined && (
+          <View style={[styles.priorityStripe, { backgroundColor: priorityColor }]} />
+        )}
         <View style={styles.avatarWrapper}>
           <Avatar name={contact.name} uri={contact.avatarUrl} size={48} />
           <View style={styles.channelBadgeOverlay}>
@@ -87,6 +97,14 @@ const createStyles = (colors: ThemeColors) =>
       paddingHorizontal: spacing[4],
       paddingVertical: spacing[3],
       gap: spacing[3],
+    },
+    priorityStripe: {
+      position: 'absolute',
+      left: 0,
+      top: spacing[2],
+      bottom: spacing[2],
+      width: 3,
+      borderRadius: borderRadius.full,
     },
     avatarWrapper: { position: 'relative' },
     channelBadgeOverlay: { position: 'absolute', bottom: -2, right: -2 },

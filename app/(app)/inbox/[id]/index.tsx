@@ -102,8 +102,22 @@ export default function ChatScreen() {
   }
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<Message>) => <MessageBubble message={item} />,
-    []
+    ({ item, index }: ListRenderItemInfo<Message>) => {
+      const showDateSep = shouldShowDateSeparator(threadMessages, index);
+      return (
+        <>
+          {showDateSep && (
+            <View style={styles.dateSeparator}>
+              <View style={styles.dateLine} />
+              <Text style={styles.dateText}>{formatMessageDate(item.sentAt)}</Text>
+              <View style={styles.dateLine} />
+            </View>
+          )}
+          <MessageBubble message={item} />
+        </>
+      );
+    },
+    [threadMessages, styles]
   );
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
@@ -204,6 +218,39 @@ export default function ChatScreen() {
   );
 }
 
+// ─── Date separator helpers ───────────────────────────────────────────────────
+
+function isSameDay(a: string, b: string): boolean {
+  const da = new Date(a);
+  const db = new Date(b);
+  return (
+    da.getFullYear() === db.getFullYear() &&
+    da.getMonth() === db.getMonth() &&
+    da.getDate() === db.getDate()
+  );
+}
+
+function shouldShowDateSeparator(messages: Message[], index: number): boolean {
+  if (index === 0) return true;
+  const prev = messages[index - 1];
+  const curr = messages[index];
+  if (prev === undefined || curr === undefined) return false;
+  return !isSameDay(prev.sentAt, curr.sentAt);
+}
+
+function formatMessageDate(iso: string): string {
+  const date = new Date(iso);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const msgDay = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+  const diffMs = today.getTime() - msgDay.getTime();
+  const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
+
+  if (diffDays === 0) return 'Hoy';
+  if (diffDays === 1) return 'Ayer';
+  return date.toLocaleDateString('es-MX', { day: 'numeric', month: 'short' });
+}
+
 function EmptyChat() {
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -282,6 +329,23 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingVertical: spacing[3],
     flexGrow: 1,
     justifyContent: 'flex-end',
+  },
+  dateSeparator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    paddingHorizontal: spacing[6],
+    paddingVertical: spacing[3],
+  },
+  dateLine: {
+    flex: 1,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.separator.transparent,
+  },
+  dateText: {
+    ...typography.caption1,
+    color: colors.text.tertiary,
+    fontWeight: '600',
   },
 
   /* AI Pill */

@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   FlatList,
+  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -105,6 +106,14 @@ function TeamList() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const onlineCount = TEAM_MEMBERS.filter((u) => u.status === 'online').length;
   const agentCount = TEAM_MEMBERS.filter((u) => u.role === 'agent').length;
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    // Simulate refresh — replace with real API call when available
+    await new Promise((r) => setTimeout(r, 800));
+    setRefreshing(false);
+  }, []);
 
   function renderItem({ item, index }: ListRenderItemInfo<User>) {
     return <MemberRow item={item} index={index} />;
@@ -115,6 +124,14 @@ function TeamList() {
       data={TEAM_MEMBERS}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.accent.primary}
+          colors={[colors.accent.primary]}
+        />
+      }
       ListHeaderComponent={
         <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.statsRow}>
           <LinearGradient

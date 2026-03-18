@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -24,10 +25,11 @@ interface ReportMetricProps {
   value: string | number;
   tint: string;
   gradientEnd: string;
+  trend?: { direction: 'up' | 'down'; percent: number };
   index: number;
 }
 
-function ReportMetric({ icon, label, value, tint, gradientEnd, index }: ReportMetricProps) {
+function ReportMetric({ icon, label, value, tint, gradientEnd, trend, index }: ReportMetricProps) {
   const colors = useColors();
   const metricStyles = useMemo(() => createMetricStyles(colors), [colors]);
 
@@ -42,8 +44,22 @@ function ReportMetric({ icon, label, value, tint, gradientEnd, index }: ReportMe
         end={{ x: 1, y: 1 }}
         style={metricStyles.card}
       >
-        <View style={[metricStyles.iconBg, { backgroundColor: tint + '20' }]}>
-          <MaterialCommunityIcons name={icon} size={20} color={tint} />
+        <View style={metricStyles.topRow}>
+          <View style={[metricStyles.iconBg, { backgroundColor: tint + '20' }]}>
+            <MaterialCommunityIcons name={icon} size={20} color={tint} />
+          </View>
+          {trend !== undefined && (
+            <View style={[metricStyles.trendPill, { backgroundColor: (trend.direction === 'up' ? colors.accent.success : colors.accent.error) + '18' }]}>
+              <MaterialCommunityIcons
+                name={trend.direction === 'up' ? 'trending-up' : 'trending-down'}
+                size={12}
+                color={trend.direction === 'up' ? colors.accent.success : colors.accent.error}
+              />
+              <Text style={[metricStyles.trendText, { color: trend.direction === 'up' ? colors.accent.success : colors.accent.error }]}>
+                {trend.percent}%
+              </Text>
+            </View>
+          )}
         </View>
         <Text style={[metricStyles.value, { color: tint }]}>{value}</Text>
         <Text style={metricStyles.label} numberOfLines={2}>{label}</Text>
@@ -65,12 +81,29 @@ const createMetricStyles = (colors: ThemeColors) => StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.separator.transparent,
   },
+  topRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   iconBg: {
     width: 36,
     height: 36,
     borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  trendPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: borderRadius.full,
+  },
+  trendText: {
+    ...typography.caption2,
+    fontWeight: '700',
   },
   value: {
     fontSize: 28,
@@ -90,9 +123,16 @@ function ReportsContent() {
   const styles = useMemo(() => createStyles(colors), [colors]);
   const conversations = useInboxStore((s) => s.conversations);
   const loadConversations = useInboxStore((s) => s.loadConversations);
+  const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
     loadConversations();
+  }, [loadConversations]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadConversations();
+    setRefreshing(false);
   }, [loadConversations]);
 
   const stats = useMemo(() => {
@@ -111,6 +151,14 @@ function ReportsContent() {
     <ScrollView
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          tintColor={colors.accent.primary}
+          colors={[colors.accent.primary]}
+        />
+      }
     >
       <Animated.View entering={FadeInDown.duration(350).delay(80)}>
         <View style={styles.periodPill}>
@@ -126,6 +174,7 @@ function ReportsContent() {
           value={stats.total}
           tint={colors.accent.primary}
           gradientEnd={colors.accent.info}
+          trend={{ direction: 'up', percent: 12 }}
           index={0}
         />
         <ReportMetric
@@ -134,6 +183,7 @@ function ReportsContent() {
           value={stats.resolved}
           tint={colors.accent.success}
           gradientEnd={colors.accent.info}
+          trend={{ direction: 'up', percent: 18 }}
           index={1}
         />
         <ReportMetric
@@ -142,6 +192,7 @@ function ReportsContent() {
           value={stats.open}
           tint={colors.accent.info}
           gradientEnd={colors.accent.primary}
+          trend={{ direction: 'down', percent: 5 }}
           index={2}
         />
         <ReportMetric
@@ -158,6 +209,7 @@ function ReportsContent() {
           value={stats.highPriority}
           tint={colors.accent.error}
           gradientEnd={colors.accent.warning}
+          trend={{ direction: 'down', percent: 3 }}
           index={4}
         />
         <ReportMetric
@@ -166,6 +218,7 @@ function ReportsContent() {
           value={stats.withAI}
           tint={colors.accent.purple}
           gradientEnd={colors.accent.primary}
+          trend={{ direction: 'up', percent: 24 }}
           index={5}
         />
       </View>
