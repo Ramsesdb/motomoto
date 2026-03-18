@@ -3,6 +3,7 @@ import { create } from 'zustand';
 
 import {
   signInWithGoogle,
+  signInWithEmail as authSignInWithEmail,
   signOut as authSignOut,
 } from '@/services/auth';
 import type { AuthUser, UserRole } from '@/types';
@@ -15,6 +16,7 @@ interface AuthState {
   isAuthenticated: boolean;
   hasMinRole: (minRole: UserRole) => boolean;
   signIn: () => Promise<void>;
+  signInWithEmail: (email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   /** Rehydrate auth state from SecureStore on app launch. */
   rehydrate: () => Promise<void>;
@@ -32,6 +34,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   signIn: async () => {
     const authUser = await signInWithGoogle();
+    await SecureStore.setItemAsync(AUTH_USER_KEY, JSON.stringify(authUser));
+    set({ user: authUser, isAuthenticated: true });
+  },
+
+  signInWithEmail: async (email: string, password: string) => {
+    const authUser = await authSignInWithEmail(email, password);
     await SecureStore.setItemAsync(AUTH_USER_KEY, JSON.stringify(authUser));
     set({ user: authUser, isAuthenticated: true });
   },

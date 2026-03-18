@@ -5,11 +5,10 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
   type ListRenderItemInfo,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useShallow } from 'zustand/react/shallow';
@@ -19,11 +18,18 @@ import { MessageBubble } from '@/components/messaging/MessageBubble';
 import { ChatInput } from '@/components/messaging/ChatInput';
 import { AISuggestionPill } from '@/components/ai/AISuggestionPill';
 import { Avatar } from '@/components/ui/Avatar';
-import { colors, spacing, typography } from '@/design';
+import { ChannelBadge } from '@/components/messaging/ChannelBadge';
+import { Pressable } from '@/components/ui/Pressable';
+import { useColors } from '@/hooks/useColors';
+import { spacing, typography, borderRadius } from '@/design';
+import type { ThemeColors } from '@/design';
 import type { Message } from '@/types';
 
 export default function ChatScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const { conversations, messages, loadMessages, sendMessage } = useInboxStore(
@@ -49,26 +55,24 @@ export default function ChatScreen() {
   const [pillVisible, setPillVisible] = useState(true);
   const listRef = useRef<FlatList<Message>>(null);
 
-  // Load messages on mount
   useEffect(() => {
     if (id !== undefined) {
       loadMessages(id);
     }
   }, [id, loadMessages]);
 
-  // Scroll to bottom whenever messages change
   useEffect(() => {
     if (threadMessages.length > 0) {
-      listRef.current?.scrollToEnd({ animated: true });
+      setTimeout(() => {
+        listRef.current?.scrollToEnd({ animated: true });
+      }, 100);
     }
   }, [threadMessages.length]);
 
-  // Reset pill visibility when new messages arrive
   useEffect(() => {
     setPillVisible(true);
   }, [threadMessages.length]);
 
-  // Find the latest inbound message with a suggestedReply
   const suggestion = useMemo<string | undefined>(() => {
     for (let i = threadMessages.length - 1; i >= 0; i--) {
       const m = threadMessages[i];
@@ -104,52 +108,61 @@ export default function ChatScreen() {
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
+  const channelType = conversation?.channelType;
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* ── Header ───────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton} activeOpacity={0.7}>
+        <Pressable onPress={() => router.back()} style={styles.backButton}>
           <MaterialCommunityIcons
-            name="chevron-left"
-            size={28}
+            name="arrow-left"
+            size={24}
             color={colors.text.primary}
           />
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
+        <Pressable
           onPress={handleNavigateToClient}
           style={styles.contactInfo}
-          activeOpacity={0.7}
         >
-          <Avatar
-            name={conversation?.contact.name ?? '?'}
-            uri={conversation?.contact.avatarUrl}
-            size={36}
-          />
+          <View style={styles.avatarContainer}>
+            <Avatar
+              name={conversation?.contact.name ?? '?'}
+              uri={conversation?.contact.avatarUrl}
+              size={38}
+            />
+            {channelType !== undefined && (
+              <View style={styles.channelBadgeOverlay}>
+                <ChannelBadge channel={channelType} size={18} />
+              </View>
+            )}
+          </View>
           <View style={styles.contactText}>
             <Text style={styles.contactName} numberOfLines={1}>
               {conversation?.contact.name ?? ''}
             </Text>
-            <Text style={styles.channelLabel} numberOfLines={1}>
-              {conversation?.channelType ?? ''}
-            </Text>
+            {channelType !== undefined && (
+              <Text style={styles.channelLabel} numberOfLines={1}>
+                {channelType.charAt(0).toUpperCase() + channelType.slice(1)}
+              </Text>
+            )}
           </View>
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
+        <Pressable
           onPress={handleNavigateToClient}
           style={styles.infoButton}
-          activeOpacity={0.7}
         >
           <MaterialCommunityIcons
             name="information-outline"
-            size={24}
+            size={22}
             color={colors.text.secondary}
           />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
-      {/* ── KeyboardAvoidingView wraps messages + input ───────────────────────── */}
+      {/* ── Messages + Input ─────────────────────────────────────────────────── */}
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -178,26 +191,34 @@ export default function ChatScreen() {
         )}
 
         {/* Chat Input */}
-        <ChatInput
-          value={inputText}
-          onChangeText={setInputText}
-          onSend={handleSend}
-          onAISuggestion={suggestion !== undefined ? () => setPillVisible((v) => !v) : undefined}
-        />
+        <View style={{ paddingBottom: insets.bottom + spacing[14] }}>
+          <ChatInput
+            value={inputText}
+            onChangeText={setInputText}
+            onSend={handleSend}
+            onAISuggestion={suggestion !== undefined ? () => setPillVisible((v) => !v) : undefined}
+          />
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 function EmptyChat() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <View style={styles.emptyChat}>
+      <View style={styles.emptyChatIcon}>
+        <MaterialCommunityIcons name="message-text-outline" size={32} color={colors.text.tertiary} />
+      </View>
       <Text style={styles.emptyChatText}>Inicia la conversación</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
@@ -205,6 +226,8 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
+
+  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -212,7 +235,8 @@ const styles = StyleSheet.create({
     paddingVertical: spacing[2],
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: colors.separator.transparent,
-    gap: spacing[2],
+    backgroundColor: colors.background.secondary,
+    gap: spacing[1],
   },
   backButton: {
     width: 40,
@@ -224,11 +248,19 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[2],
+    gap: spacing[3],
+  },
+  avatarContainer: {
+    position: 'relative',
+  },
+  channelBadgeOverlay: {
+    position: 'absolute',
+    bottom: -2,
+    right: -4,
   },
   contactText: {
     flex: 1,
-    gap: 2,
+    gap: 1,
   },
   contactName: {
     ...typography.headline,
@@ -237,7 +269,6 @@ const styles = StyleSheet.create({
   channelLabel: {
     ...typography.caption1,
     color: colors.text.tertiary,
-    textTransform: 'capitalize',
   },
   infoButton: {
     width: 40,
@@ -245,23 +276,39 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  /* Messages */
   messageList: {
     paddingVertical: spacing[3],
     flexGrow: 1,
     justifyContent: 'flex-end',
   },
+
+  /* AI Pill */
   pillWrapper: {
     paddingHorizontal: spacing[4],
-    paddingBottom: spacing[2],
+    paddingVertical: spacing[2],
+    backgroundColor: colors.background.primary,
   },
+
+  /* Empty */
   emptyChat: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: spacing[16],
+    gap: spacing[3],
+  },
+  emptyChatIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.background.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   emptyChatText: {
-    ...typography.body,
+    ...typography.subhead,
     color: colors.text.tertiary,
   },
 });

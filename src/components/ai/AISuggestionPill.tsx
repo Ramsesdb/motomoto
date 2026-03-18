@@ -1,76 +1,80 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { colors, spacing, typography, borderRadius } from '@/design';
+import { useColors } from '@/hooks/useColors';
+import { spacing, typography, borderRadius } from '@/design';
+import type { ThemeColors } from '@/design';
 import { Pressable } from '@/components/ui/Pressable';
 
 interface AISuggestionPillProps {
-  /** The suggested reply text to display on the chip. */
   suggestion: string;
-  /**
-   * Called when the user taps the pill.
-   * Typically used to pre-fill the ChatInput's `value`.
-   */
   onPress: (suggestion: string) => void;
-  /** Optional dismiss callback — renders an × icon on the right when provided. */
   onDismiss?: () => void;
 }
 
-/**
- * Tappable chip that shows an AI-generated suggested reply.
- * Tapping calls `onPress(suggestion)` so the parent can inject the text
- * into ChatInput (controlled mode).
- */
 export function AISuggestionPill({ suggestion, onPress, onDismiss }: AISuggestionPillProps) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
-    <Pressable onPress={() => onPress(suggestion)} style={styles.pill}>
-      <MaterialCommunityIcons
-        name="robot-outline"
-        size={14}
-        color={colors.accent.purple}
-        style={styles.icon}
-      />
-      <Text style={styles.text} numberOfLines={2}>
-        {suggestion}
-      </Text>
-      {onDismiss !== undefined && (
-        <Pressable onPress={onDismiss} style={styles.dismissButton}>
-          <MaterialCommunityIcons
-            name="close"
-            size={14}
-            color={colors.text.tertiary}
-          />
-        </Pressable>
-      )}
+    <Pressable onPress={() => onPress(suggestion)} style={styles.outer}>
+      <LinearGradient
+        colors={[colors.accent.purple + '20', colors.accent.purple + '0A']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.pill}
+      >
+        <View style={styles.iconCircle}>
+          <MaterialCommunityIcons name="robot-outline" size={14} color={colors.accent.purple} />
+        </View>
+        <View style={styles.textContainer}>
+          <Text style={styles.label}>Sugerencia IA</Text>
+          <Text style={styles.text} numberOfLines={2}>{suggestion}</Text>
+        </View>
+        {onDismiss !== undefined && (
+          <Pressable onPress={onDismiss} style={styles.dismissButton}>
+            <MaterialCommunityIcons name="close" size={14} color={colors.text.tertiary} />
+          </Pressable>
+        )}
+      </LinearGradient>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
-  pill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.accent.purpleMuted,
-    borderRadius: borderRadius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.accent.purple,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    gap: spacing[2],
-    alignSelf: 'flex-start',
-    maxWidth: '90%',
-  },
-  icon: {
-    flexShrink: 0,
-  },
-  text: {
-    flex: 1,
-    ...typography.subhead,
-    color: colors.text.primary,
-  },
-  dismissButton: {
-    flexShrink: 0,
-    padding: spacing[1],
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    outer: { alignSelf: 'stretch' },
+    pill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderRadius: borderRadius.lg,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.accent.purple + '40',
+      paddingHorizontal: spacing[3],
+      paddingVertical: spacing[3],
+      gap: spacing[3],
+    },
+    iconCircle: {
+      width: 28,
+      height: 28,
+      borderRadius: borderRadius.full,
+      backgroundColor: colors.accent.purpleMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+      flexShrink: 0,
+    },
+    textContainer: { flex: 1, gap: 2 },
+    label: { ...typography.caption2, color: colors.accent.purple, fontWeight: '600' },
+    text: { ...typography.subhead, color: colors.text.primary },
+    dismissButton: {
+      flexShrink: 0,
+      width: 28,
+      height: 28,
+      borderRadius: borderRadius.full,
+      backgroundColor: colors.background.tertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+  });

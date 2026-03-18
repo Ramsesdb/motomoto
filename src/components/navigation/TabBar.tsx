@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
@@ -10,9 +10,9 @@ import Animated, {
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { colors, spacing, typography } from '@/design';
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { useColors, useIsDark } from '@/hooks/useColors';
+import { spacing, typography, borderRadius } from '@/design';
+import type { ThemeColors } from '@/design';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -22,43 +22,30 @@ interface TabMeta {
   label: string;
 }
 
-// ─── Tab configuration ────────────────────────────────────────────────────────
-
 const SPRING = { damping: 15, stiffness: 400 } as const;
 
 const TAB_META: Record<string, TabMeta> = {
   home: { icon: 'home-outline', activeIcon: 'home', label: 'Inicio' },
   inbox: { icon: 'message-outline', activeIcon: 'message', label: 'Mensajes' },
   ai: { icon: 'robot-outline', activeIcon: 'robot', label: 'IA' },
-  team: {
-    icon: 'account-group-outline',
-    activeIcon: 'account-group',
-    label: 'Equipo',
-  },
+  team: { icon: 'account-group-outline', activeIcon: 'account-group', label: 'Equipo' },
   reports: { icon: 'chart-bar', activeIcon: 'chart-bar', label: 'Reportes' },
-  profile: {
-    icon: 'account-circle-outline',
-    activeIcon: 'account-circle',
-    label: 'Perfil',
-  },
+  profile: { icon: 'account-circle-outline', activeIcon: 'account-circle', label: 'Perfil' },
   settings: { icon: 'cog-outline', activeIcon: 'cog', label: 'Ajustes' },
 };
-
-// ─── TabItem ──────────────────────────────────────────────────────────────────
 
 interface TabItemProps {
   routeName: string;
   isFocused: boolean;
   onPress: () => void;
   onLongPress: () => void;
+  colors: ThemeColors;
+  styles: ReturnType<typeof createStyles>;
 }
 
-function TabItem({ routeName, isFocused, onPress, onLongPress }: TabItemProps) {
+function TabItem({ routeName, isFocused, onPress, onLongPress, colors, styles }: TabItemProps) {
   const scale = useSharedValue(1);
-
-  const animStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
+  const animStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
 
   const meta: TabMeta = TAB_META[routeName] ?? {
     icon: 'circle-outline' as IconName,
@@ -72,23 +59,20 @@ function TabItem({ routeName, isFocused, onPress, onLongPress }: TabItemProps) {
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
-      onPressIn={() => {
-        scale.value = withSpring(0.82, SPRING);
-      }}
-      onPressOut={() => {
-        scale.value = withSpring(1, SPRING);
-      }}
+      onPressIn={() => { scale.value = withSpring(0.85, SPRING); }}
+      onPressOut={() => { scale.value = withSpring(1, SPRING); }}
       style={styles.tabItem}
       accessibilityRole="button"
       accessibilityState={{ selected: isFocused }}
     >
       <Animated.View style={[styles.tabInner, animStyle]}>
+        {isFocused && <View style={styles.activePill} />}
         <MaterialCommunityIcons
           name={isFocused ? meta.activeIcon : meta.icon}
-          size={24}
+          size={22}
           color={activeColor}
         />
-        <Text style={[styles.label, { color: activeColor }]} numberOfLines={1}>
+        <Text style={[styles.label, { color: activeColor }, isFocused && styles.labelActive]} numberOfLines={1}>
           {meta.label}
         </Text>
       </Animated.View>
@@ -96,16 +80,10 @@ function TabItem({ routeName, isFocused, onPress, onLongPress }: TabItemProps) {
   );
 }
 
-// ─── TabBar ───────────────────────────────────────────────────────────────────
-
-/**
- * Custom bottom tab bar with:
- * - iOS: BlurView (intensity 80, dark tint) background
- * - Android: solid `background.secondary` surface
- * - Per-tab spring scale animation via Reanimated v4 withSpring
- * - Respects safe area insets for bottom padding
- */
 export function TabBar({ state, navigation }: BottomTabBarProps) {
+  const colors = useColors();
+  const isDark = useIsDark();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const insets = useSafeAreaInsets();
   const paddingBottom = Math.max(insets.bottom, spacing[2]);
 
@@ -113,23 +91,16 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
     <View style={[styles.inner, { paddingBottom }]}>
       {state.routes.map((route) => {
         const isFocused = state.routes[state.index]?.key === route.key;
-
         function onPress() {
-          const event = navigation.emit({
-            type: 'tabPress',
-            target: route.key,
-            canPreventDefault: true,
-          });
+          const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
           if (!isFocused && !event.defaultPrevented) {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             navigation.navigate(route.name as any, route.params as any);
           }
         }
-
         function onLongPress() {
           navigation.emit({ type: 'tabLongPress', target: route.key });
         }
-
         return (
           <TabItem
             key={route.key}
@@ -137,6 +108,8 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
             isFocused={isFocused}
             onPress={onPress}
             onLongPress={onLongPress}
+            colors={colors}
+            styles={styles}
           />
         );
       })}
@@ -145,50 +118,49 @@ export function TabBar({ state, navigation }: BottomTabBarProps) {
 
   if (Platform.OS !== 'android') {
     return (
-      <BlurView intensity={80} tint="dark" style={styles.container}>
-        <View style={styles.borderTop} />
-        {content}
-      </BlurView>
+      <View style={styles.outerContainer}>
+        <BlurView intensity={80} tint={isDark ? 'dark' : 'light'} style={styles.container}>
+          {content}
+        </BlurView>
+      </View>
     );
   }
 
   return (
-    <View style={[styles.container, styles.androidBg]}>
-      <View style={styles.borderTop} />
-      {content}
+    <View style={styles.outerContainer}>
+      <View style={[styles.container, styles.androidBg]}>{content}</View>
     </View>
   );
 }
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
-
-const styles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-  },
-  androidBg: {
-    backgroundColor: colors.background.secondary,
-  },
-  borderTop: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.separator.transparent,
-  },
-  inner: {
-    flexDirection: 'row',
-    paddingTop: spacing[2],
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  tabInner: {
-    alignItems: 'center',
-    gap: spacing[1],
-  },
-  label: {
-    ...typography.caption2,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    outerContainer: {
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      right: 0,
+      paddingHorizontal: spacing[3],
+      paddingBottom: spacing[1],
+    },
+    container: {
+      borderRadius: borderRadius['2xl'],
+      overflow: 'hidden',
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.separator.transparent,
+    },
+    androidBg: { backgroundColor: colors.background.secondary },
+    inner: { flexDirection: 'row', paddingTop: spacing[2] },
+    tabItem: { flex: 1, alignItems: 'center' },
+    tabInner: { alignItems: 'center', gap: spacing[1], position: 'relative' },
+    activePill: {
+      position: 'absolute',
+      top: -spacing[2],
+      width: 20,
+      height: 3,
+      borderRadius: borderRadius.full,
+      backgroundColor: colors.accent.primary,
+    },
+    label: { ...typography.caption2 },
+    labelActive: { fontWeight: '600' },
+  });

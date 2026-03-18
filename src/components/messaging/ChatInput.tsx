@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   StyleSheet,
   TextInput,
@@ -7,32 +7,20 @@ import {
 } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { colors, spacing, typography, borderRadius } from '@/design';
+import { useColors } from '@/hooks/useColors';
+import { spacing, typography, borderRadius } from '@/design';
+import type { ThemeColors } from '@/design';
 import { Pressable } from '@/components/ui/Pressable';
 
 interface ChatInputProps {
-  /** Called when the user taps Send with non-empty text. Clears the input. */
   onSend: (text: string) => void;
-  /** Called when the user taps the attachment icon. */
   onAttachment?: () => void;
-  /**
-   * When supplied, an AI-suggestion indicator is shown.
-   * Tapping it triggers this callback (e.g. open AISuggestionPill).
-   */
   onAISuggestion?: () => void;
-  /** Pre-fill the input (e.g. from an AISuggestionPill tap). */
   value?: string;
-  /** Controlled-mode change handler. When omitted the input is uncontrolled. */
   onChangeText?: TextInputProps['onChangeText'];
   placeholder?: string;
 }
 
-/**
- * Chat toolbar: attachment icon | multiline text field | (AI button?) | send button.
- *
- * Supports both controlled (value + onChangeText) and uncontrolled modes.
- * In uncontrolled mode the input manages its own text and clears on send.
- */
 export function ChatInput({
   onSend,
   onAttachment,
@@ -41,9 +29,10 @@ export function ChatInput({
   onChangeText,
   placeholder = 'Escribe un mensaje…',
 }: ChatInputProps) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isControlled = value !== undefined;
   const [localText, setLocalText] = useState('');
-
   const currentText = isControlled ? value : localText;
 
   function handleChangeText(text: string) {
@@ -62,16 +51,9 @@ export function ChatInput({
 
   return (
     <View style={styles.container}>
-      {/* Attachment */}
       <Pressable onPress={onAttachment} style={styles.iconButton}>
-        <MaterialCommunityIcons
-          name="paperclip"
-          size={22}
-          color={colors.text.secondary}
-        />
+        <MaterialCommunityIcons name="plus-circle-outline" size={24} color={colors.text.secondary} />
       </Pressable>
-
-      {/* Text field */}
       <View style={styles.inputWrapper}>
         <TextInput
           style={styles.input}
@@ -83,20 +65,12 @@ export function ChatInput({
           returnKeyType="default"
           blurOnSubmit={false}
         />
+        {onAISuggestion !== undefined && (
+          <Pressable onPress={onAISuggestion} style={styles.aiButton}>
+            <MaterialCommunityIcons name="robot-outline" size={18} color={colors.accent.purple} />
+          </Pressable>
+        )}
       </View>
-
-      {/* AI suggestion indicator — only shown when prop is provided */}
-      {onAISuggestion !== undefined && (
-        <Pressable onPress={onAISuggestion} style={styles.iconButton}>
-          <MaterialCommunityIcons
-            name="robot-outline"
-            size={22}
-            color={colors.accent.purple}
-          />
-        </Pressable>
-      )}
-
-      {/* Send */}
       <Pressable
         onPress={handleSend}
         style={[styles.sendButton, canSend && styles.sendButtonActive]}
@@ -104,56 +78,58 @@ export function ChatInput({
       >
         <MaterialCommunityIcons
           name="send"
-          size={20}
-          color={canSend ? colors.text.primary : colors.text.tertiary}
+          size={18}
+          color={canSend ? '#FFFFFF' : colors.text.tertiary}
         />
       </Pressable>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    backgroundColor: colors.background.secondary,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: colors.separator.transparent,
-    gap: spacing[2],
-  },
-  iconButton: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  inputWrapper: {
-    flex: 1,
-    backgroundColor: colors.background.elevated,
-    borderRadius: borderRadius.xl,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    minHeight: 36,
-    maxHeight: 120,
-    justifyContent: 'center',
-  },
-  input: {
-    ...typography.body,
-    color: colors.text.primary,
-    padding: 0,
-    margin: 0,
-  },
-  sendButton: {
-    width: 36,
-    height: 36,
-    borderRadius: borderRadius.full,
-    backgroundColor: colors.background.elevated,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sendButtonActive: {
-    backgroundColor: colors.accent.primary,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    container: {
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      paddingHorizontal: spacing[3],
+      paddingVertical: spacing[2],
+      backgroundColor: colors.background.secondary,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: colors.separator.transparent,
+      gap: spacing[2],
+    },
+    iconButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+    inputWrapper: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'flex-end',
+      backgroundColor: colors.background.tertiary,
+      borderRadius: borderRadius.xl,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.separator.transparent,
+      paddingLeft: spacing[3],
+      paddingRight: spacing[1],
+      paddingVertical: spacing[2],
+      minHeight: 40,
+      maxHeight: 120,
+    },
+    input: { flex: 1, ...typography.body, color: colors.text.primary, padding: 0, margin: 0 },
+    aiButton: {
+      width: 32,
+      height: 32,
+      borderRadius: borderRadius.full,
+      backgroundColor: colors.accent.purpleMuted,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginLeft: spacing[1],
+    },
+    sendButton: {
+      width: 38,
+      height: 38,
+      borderRadius: borderRadius.full,
+      backgroundColor: colors.background.tertiary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sendButtonActive: { backgroundColor: colors.accent.primary },
+  });

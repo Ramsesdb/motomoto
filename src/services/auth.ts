@@ -34,6 +34,21 @@ export async function signInWithGoogle(): Promise<AuthUser> {
   return authUser;
 }
 
+/**
+ * Sign in with email + password.
+ * Currently returns a mock AuthUser for development.
+ * TODO: implement real API call to POST /auth/login
+ */
+export async function signInWithEmail(
+  _email: string,
+  _password: string,
+): Promise<AuthUser> {
+  const authUser = buildMockAuthUser();
+  await SecureStore.setItemAsync(AUTH_TOKEN_KEY, authUser.accessToken);
+  await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, authUser.refreshToken);
+  return authUser;
+}
+
 /** Clear all stored tokens and end the session. */
 export async function signOut(): Promise<void> {
   await SecureStore.deleteItemAsync(AUTH_TOKEN_KEY);

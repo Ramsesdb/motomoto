@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   FlatList,
   StyleSheet,
@@ -7,12 +7,14 @@ import {
   type ListRenderItemInfo,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { RoleGate } from '@/components/ui/RoleGate';
 import { Avatar } from '@/components/ui/Avatar';
-import { GlassCard } from '@/components/ui/GlassCard';
-import { colors, spacing, typography, borderRadius } from '@/design';
+import { useColors } from '@/hooks/useColors';
+import { spacing, typography, borderRadius, type ThemeColors } from '@/design';
 import { MOCK_AGENT, MOCK_MANAGER, MOCK_ADMIN } from '@/mock';
 import type { User } from '@/types';
 
@@ -24,41 +26,53 @@ const ROLE_LABEL: Record<string, string> = {
   admin: 'Administrador',
 };
 
-const ROLE_TINT: Record<string, string> = {
-  agent: colors.accent.primary,
-  manager: colors.accent.success,
-  admin: colors.accent.purple,
-};
+function getRoleTint(colors: ThemeColors): Record<string, string> {
+  return {
+    agent: colors.accent.primary,
+    manager: colors.accent.success,
+    admin: colors.accent.purple,
+  };
+}
 
 // ─── Team member row ──────────────────────────────────────────────────────────
 
-function MemberRow({ item }: { item: User }) {
-  const tint = ROLE_TINT[item.role] ?? colors.accent.primary;
+function MemberRow({ item, index }: { item: User; index: number }) {
+  const colors = useColors();
+  const memberStyles = useMemo(() => createMemberStyles(colors), [colors]);
+  const roleTint = useMemo(() => getRoleTint(colors), [colors]);
+  const tint = roleTint[item.role] ?? colors.accent.primary;
+
   return (
-    <View style={memberStyles.row}>
-      <Avatar name={item.name} uri={item.avatarUrl} size={44} status={item.status} />
-      <View style={memberStyles.info}>
-        <Text style={memberStyles.name}>{item.name}</Text>
-        <Text style={memberStyles.email} numberOfLines={1}>{item.email}</Text>
+    <Animated.View entering={FadeInDown.duration(350).delay(200 + index * 60)}>
+      <View style={memberStyles.row}>
+        <Avatar name={item.name} uri={item.avatarUrl} size={44} status={item.status} />
+        <View style={memberStyles.info}>
+          <Text style={memberStyles.name}>{item.name}</Text>
+          <Text style={memberStyles.email} numberOfLines={1}>{item.email}</Text>
+        </View>
+        <View style={[memberStyles.badge, { backgroundColor: tint + '18' }]}>
+          <Text style={[memberStyles.badgeText, { color: tint }]}>
+            {ROLE_LABEL[item.role] ?? item.role}
+          </Text>
+        </View>
       </View>
-      <View style={[memberStyles.badge, { backgroundColor: tint + '22' }]}>
-        <Text style={[memberStyles.badgeText, { color: tint }]}>
-          {ROLE_LABEL[item.role] ?? item.role}
-        </Text>
-      </View>
-    </View>
+    </Animated.View>
   );
 }
 
-const memberStyles = StyleSheet.create({
+const createMemberStyles = (colors: ThemeColors) => StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator.transparent,
+    marginHorizontal: spacing[4],
+    marginBottom: spacing[2],
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.lg,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.separator.transparent,
   },
   info: {
     flex: 1,
@@ -87,8 +101,13 @@ const memberStyles = StyleSheet.create({
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 function TeamList() {
-  function renderItem({ item }: ListRenderItemInfo<User>) {
-    return <MemberRow item={item} />;
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const onlineCount = TEAM_MEMBERS.filter((u) => u.status === 'online').length;
+  const agentCount = TEAM_MEMBERS.filter((u) => u.role === 'agent').length;
+
+  function renderItem({ item, index }: ListRenderItemInfo<User>) {
+    return <MemberRow item={item} index={index} />;
   }
 
   return (
@@ -97,26 +116,43 @@ function TeamList() {
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
       ListHeaderComponent={
-        <GlassCard style={styles.statsCard}>
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>{TEAM_MEMBERS.length}</Text>
-            <Text style={styles.statLabel}>Miembros</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>
-              {TEAM_MEMBERS.filter((u) => u.status === 'online').length}
+        <Animated.View entering={FadeInDown.duration(400).delay(100)} style={styles.statsRow}>
+          <LinearGradient
+            colors={[colors.accent.primary + '15', colors.accent.primary + '05']}
+            style={styles.statCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Text style={[styles.statValue, { color: colors.accent.primary }]}>
+              {TEAM_MEMBERS.length}
             </Text>
-            <Text style={styles.statLabel}>En línea</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.stat}>
-            <Text style={styles.statValue}>
-              {TEAM_MEMBERS.filter((u) => u.role === 'agent').length}
+            <Text style={styles.statLabel}>Miembros</Text>
+          </LinearGradient>
+
+          <LinearGradient
+            colors={[colors.accent.success + '15', colors.accent.success + '05']}
+            style={styles.statCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Text style={[styles.statValue, { color: colors.accent.success }]}>
+              {onlineCount}
+            </Text>
+            <Text style={styles.statLabel}>En linea</Text>
+          </LinearGradient>
+
+          <LinearGradient
+            colors={[colors.accent.info + '15', colors.accent.info + '05']}
+            style={styles.statCard}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+          >
+            <Text style={[styles.statValue, { color: colors.accent.info }]}>
+              {agentCount}
             </Text>
             <Text style={styles.statLabel}>Agentes</Text>
-          </View>
-        </GlassCard>
+          </LinearGradient>
+        </Animated.View>
       }
       contentContainerStyle={styles.listContent}
       showsVerticalScrollIndicator={false}
@@ -125,21 +161,27 @@ function TeamList() {
 }
 
 export default function TeamScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <Animated.View entering={FadeInDown.duration(350).delay(50)} style={styles.header}>
         <Text style={styles.title}>Equipo</Text>
-      </View>
+      </Animated.View>
 
       <RoleGate
         minRole="manager"
         fallback={
           <View style={styles.accessDenied}>
-            <MaterialCommunityIcons
-              name="lock-outline"
-              size={48}
-              color={colors.text.tertiary}
-            />
+            <View style={styles.lockCircle}>
+              <MaterialCommunityIcons
+                name="lock-outline"
+                size={32}
+                color={colors.text.tertiary}
+              />
+            </View>
+            <Text style={styles.accessDeniedTitle}>Acceso restringido</Text>
             <Text style={styles.accessDeniedText}>
               Solo gerentes y administradores pueden ver el equipo.
             </Text>
@@ -152,14 +194,14 @@ export default function TeamScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
   },
   header: {
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[2],
+    paddingTop: spacing[4],
     paddingBottom: spacing[3],
   },
   title: {
@@ -167,43 +209,59 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text.primary,
   },
-  statsCard: {
+
+  /* Stats */
+  statsRow: {
     flexDirection: 'row',
-    margin: spacing[4],
-    padding: spacing[4],
-    gap: spacing[2],
+    gap: spacing[3],
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[4],
   },
-  stat: {
+  statCard: {
     flex: 1,
     alignItems: 'center',
-    gap: 4,
+    gap: spacing[1],
+    paddingVertical: spacing[4],
+    borderRadius: borderRadius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.separator.transparent,
   },
   statValue: {
     fontSize: 24,
-    fontWeight: '700',
-    color: colors.text.primary,
+    fontWeight: '800',
   },
   statLabel: {
     ...typography.caption1,
     color: colors.text.secondary,
   },
-  statDivider: {
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: colors.separator.opaque,
-    alignSelf: 'stretch',
-  },
+
   listContent: {
-    paddingBottom: spacing[20],
+    paddingBottom: spacing[24],
   },
+
+  /* Access denied */
   accessDenied: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing[4],
+    gap: spacing[3],
     paddingHorizontal: spacing[8],
   },
+  lockCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.background.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing[2],
+  },
+  accessDeniedTitle: {
+    ...typography.headline,
+    color: colors.text.primary,
+  },
   accessDeniedText: {
-    ...typography.body,
+    ...typography.subhead,
     color: colors.text.tertiary,
     textAlign: 'center',
   },

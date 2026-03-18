@@ -6,12 +6,15 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { RoleGate } from '@/components/ui/RoleGate';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { useInboxStore } from '@/store/useInboxStore';
-import { colors, spacing, typography, borderRadius } from '@/design';
+import { useColors } from '@/hooks/useColors';
+import { spacing, typography, borderRadius, type ThemeColors } from '@/design';
 
 // ─── Metric card ──────────────────────────────────────────────────────────────
 
@@ -20,38 +23,58 @@ interface ReportMetricProps {
   label: string;
   value: string | number;
   tint: string;
+  gradientEnd: string;
+  index: number;
 }
 
-function ReportMetric({ icon, label, value, tint }: ReportMetricProps) {
+function ReportMetric({ icon, label, value, tint, gradientEnd, index }: ReportMetricProps) {
+  const colors = useColors();
+  const metricStyles = useMemo(() => createMetricStyles(colors), [colors]);
+
   return (
-    <GlassCard style={metricStyles.card}>
-      <View style={[metricStyles.iconBg, { backgroundColor: tint + '22' }]}>
-        <MaterialCommunityIcons name={icon} size={22} color={tint} />
-      </View>
-      <Text style={metricStyles.value}>{value}</Text>
-      <Text style={metricStyles.label} numberOfLines={2}>{label}</Text>
-    </GlassCard>
+    <Animated.View
+      entering={FadeInDown.duration(350).delay(150 + index * 60)}
+      style={metricStyles.wrapper}
+    >
+      <LinearGradient
+        colors={[tint + '15', gradientEnd + '06']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={metricStyles.card}
+      >
+        <View style={[metricStyles.iconBg, { backgroundColor: tint + '20' }]}>
+          <MaterialCommunityIcons name={icon} size={20} color={tint} />
+        </View>
+        <Text style={[metricStyles.value, { color: tint }]}>{value}</Text>
+        <Text style={metricStyles.label} numberOfLines={2}>{label}</Text>
+      </LinearGradient>
+    </Animated.View>
   );
 }
 
-const metricStyles = StyleSheet.create({
-  card: {
+const createMetricStyles = (colors: ThemeColors) => StyleSheet.create({
+  wrapper: {
     width: '47%',
+    flexGrow: 1,
+  },
+  card: {
     padding: spacing[4],
     gap: spacing[2],
-    minHeight: 110,
+    minHeight: 120,
+    borderRadius: borderRadius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.separator.transparent,
   },
   iconBg: {
     width: 36,
     height: 36,
-    borderRadius: borderRadius.sm,
+    borderRadius: borderRadius.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   value: {
     fontSize: 28,
-    fontWeight: '700',
-    color: colors.text.primary,
+    fontWeight: '800',
     letterSpacing: -0.5,
   },
   label: {
@@ -63,6 +86,8 @@ const metricStyles = StyleSheet.create({
 // ─── Reports content ─────────────────────────────────────────────────────────
 
 function ReportsContent() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const conversations = useInboxStore((s) => s.conversations);
   const loadConversations = useInboxStore((s) => s.loadConversations);
 
@@ -87,7 +112,12 @@ function ReportsContent() {
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.scrollContent}
     >
-      <Text style={styles.periodLabel}>Periodo actual · Todos los datos</Text>
+      <Animated.View entering={FadeInDown.duration(350).delay(80)}>
+        <View style={styles.periodPill}>
+          <MaterialCommunityIcons name="calendar-range" size={14} color={colors.text.secondary} />
+          <Text style={styles.periodLabel}>Periodo actual · Todos los datos</Text>
+        </View>
+      </Animated.View>
 
       <View style={styles.grid}>
         <ReportMetric
@@ -95,46 +125,62 @@ function ReportsContent() {
           label="Total conversaciones"
           value={stats.total}
           tint={colors.accent.primary}
+          gradientEnd={colors.accent.info}
+          index={0}
         />
         <ReportMetric
           icon="check-circle-outline"
-          label="Conversaciones resueltas"
+          label="Resueltas"
           value={stats.resolved}
           tint={colors.accent.success}
+          gradientEnd={colors.accent.info}
+          index={1}
         />
         <ReportMetric
           icon="message-outline"
-          label="Abiertas actualmente"
+          label="Abiertas"
           value={stats.open}
           tint={colors.accent.info}
+          gradientEnd={colors.accent.primary}
+          index={2}
         />
         <ReportMetric
           icon="clock-outline"
-          label="Pendientes de respuesta"
+          label="Pendientes"
           value={stats.pending}
           tint={colors.accent.warning}
+          gradientEnd={colors.accent.error}
+          index={3}
         />
         <ReportMetric
           icon="alert-circle-outline"
           label="Alta prioridad"
           value={stats.highPriority}
           tint={colors.accent.error}
+          gradientEnd={colors.accent.warning}
+          index={4}
         />
         <ReportMetric
           icon="robot-outline"
           label="Analizadas por IA"
           value={stats.withAI}
           tint={colors.accent.purple}
+          gradientEnd={colors.accent.primary}
+          index={5}
         />
       </View>
 
-      <GlassCard style={styles.placeholderCard}>
-        <MaterialCommunityIcons name="chart-line" size={40} color={colors.text.tertiary} />
-        <Text style={styles.placeholderTitle}>Gráficas avanzadas</Text>
-        <Text style={styles.placeholderDesc}>
-          Los gráficos de tendencias, tiempos de respuesta y satisfacción del cliente estarán disponibles próximamente.
-        </Text>
-      </GlassCard>
+      <Animated.View entering={FadeInDown.duration(400).delay(550)}>
+        <GlassCard style={styles.placeholderCard}>
+          <View style={styles.placeholderIconCircle}>
+            <MaterialCommunityIcons name="chart-line" size={28} color={colors.accent.info} />
+          </View>
+          <Text style={styles.placeholderTitle}>Graficas avanzadas</Text>
+          <Text style={styles.placeholderDesc}>
+            Tendencias, tiempos de respuesta y satisfaccion del cliente proximamente.
+          </Text>
+        </GlassCard>
+      </Animated.View>
     </ScrollView>
   );
 }
@@ -142,17 +188,23 @@ function ReportsContent() {
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function ReportsScreen() {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <View style={styles.header}>
+      <Animated.View entering={FadeInDown.duration(350).delay(50)} style={styles.header}>
         <Text style={styles.title}>Reportes</Text>
-      </View>
+      </Animated.View>
 
       <RoleGate
         minRole="manager"
         fallback={
           <View style={styles.accessDenied}>
-            <MaterialCommunityIcons name="lock-outline" size={48} color={colors.text.tertiary} />
+            <View style={styles.lockCircle}>
+              <MaterialCommunityIcons name="lock-outline" size={32} color={colors.text.tertiary} />
+            </View>
+            <Text style={styles.accessDeniedTitle}>Acceso restringido</Text>
             <Text style={styles.accessDeniedText}>
               Solo gerentes y administradores pueden ver los reportes.
             </Text>
@@ -165,14 +217,14 @@ export default function ReportsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
   },
   header: {
     paddingHorizontal: spacing[4],
-    paddingTop: spacing[2],
+    paddingTop: spacing[4],
     paddingBottom: spacing[3],
   },
   title: {
@@ -182,12 +234,22 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: spacing[4],
-    paddingBottom: spacing[20],
+    paddingBottom: spacing[24],
     gap: spacing[4],
   },
+  periodPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    alignSelf: 'flex-start',
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
+  },
   periodLabel: {
-    ...typography.footnote,
-    color: colors.text.tertiary,
+    ...typography.caption1,
+    color: colors.text.secondary,
   },
   grid: {
     flexDirection: 'row',
@@ -198,6 +260,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: spacing[8],
     gap: spacing[3],
+  },
+  placeholderIconCircle: {
+    width: 56,
+    height: 56,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.accent.infoMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   placeholderTitle: {
     ...typography.title3,
@@ -214,11 +284,24 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: spacing[4],
+    gap: spacing[3],
     paddingHorizontal: spacing[8],
   },
+  lockCircle: {
+    width: 72,
+    height: 72,
+    borderRadius: borderRadius.full,
+    backgroundColor: colors.background.tertiary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing[2],
+  },
+  accessDeniedTitle: {
+    ...typography.headline,
+    color: colors.text.primary,
+  },
   accessDeniedText: {
-    ...typography.body,
+    ...typography.subhead,
     color: colors.text.tertiary,
     textAlign: 'center',
   },

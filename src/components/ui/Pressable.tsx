@@ -1,5 +1,10 @@
 import React from 'react';
-import { Pressable as RNPressable, type PressableProps } from 'react-native';
+import {
+  Pressable as RNPressable,
+  type PressableProps,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,15 +15,18 @@ const SPRING_CONFIG = { damping: 15, stiffness: 400 } as const;
 const SCALE_PRESSED = 0.96;
 const SCALE_RESTING = 1;
 
-type AnimatedPressableProps = PressableProps & {
+type AnimatedPressableProps = Omit<PressableProps, 'style'> & {
   children: React.ReactNode;
+  /** Style applied to the inner Animated.View (supports layout props like flexDirection). */
+  style?: StyleProp<ViewStyle>;
 };
 
 /**
  * Drop-in replacement for RN `Pressable` with a Reanimated v4 spring scale
  * feedback on press. Uses `withSpring` — never the legacy `Animated` API.
  *
- * All standard `PressableProps` are forwarded to the underlying `Pressable`.
+ * The `style` prop is applied to the inner `Animated.View` so that layout
+ * properties (flexDirection, gap, padding, etc.) correctly affect children.
  */
 export function Pressable({
   children,
@@ -43,10 +51,9 @@ export function Pressable({
         scale.value = withSpring(SCALE_RESTING, SPRING_CONFIG);
         onPressOut?.(e);
       }}
-      style={style}
       {...rest}
     >
-      <Animated.View style={animatedStyle}>{children}</Animated.View>
+      <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
     </RNPressable>
   );
 }

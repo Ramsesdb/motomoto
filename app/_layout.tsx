@@ -5,18 +5,11 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 
 import { useAuthStore } from '@/store/useAuthStore';
+import { useThemeStore } from '@/store/useThemeStore';
 import { useShallow } from 'zustand/react/shallow';
+import { useColors, useIsDark } from '@/hooks/useColors';
+import { ToastProvider } from '@/components/ui/Toast';
 
-/**
- * Root layout — wraps the entire app.
- *
- * Responsibilities:
- * 1. GestureHandlerRootView + SafeAreaProvider (required at root)
- * 2. Rehydrate auth state from expo-secure-store on launch
- * 3. Auth gate — redirect to (auth) or (app) depending on authentication state
- *
- * Fonts: system fonts (SF Pro / Roboto) — no custom font loading required.
- */
 export default function RootLayout() {
   const { isAuthenticated, rehydrate } = useAuthStore(
     useShallow((s) => ({
@@ -24,39 +17,44 @@ export default function RootLayout() {
       rehydrate: s.rehydrate,
     }))
   );
+  const rehydrateTheme = useThemeStore((s) => s.rehydrate);
+
+  const colors = useColors();
+  const isDark = useIsDark();
 
   const [isReady, setIsReady] = useState(false);
   const segments = useSegments();
   const router = useRouter();
 
-  // Rehydrate persisted auth state once on mount
   useEffect(() => {
-    rehydrate().finally(() => setIsReady(true));
-  }, [rehydrate]);
+    Promise.all([rehydrate(), rehydrateTheme()]).finally(() => setIsReady(true));
+  }, [rehydrate, rehydrateTheme]);
 
-  // Redirect based on auth state after rehydration is complete
   useEffect(() => {
     if (!isReady) return;
-
     const inAuthGroup = segments[0] === '(auth)';
-
     if (!isAuthenticated && !inAuthGroup) {
-      // Not logged in — send to login screen
       router.replace('/(auth)/login' as never);
     } else if (isAuthenticated && inAuthGroup) {
-      // Already authenticated — send to main app
       router.replace('/(app)/home' as never);
     }
   }, [isAuthenticated, isReady, segments, router]);
 
-  // Hold rendering until rehydration resolves (avoids flash of wrong screen)
   if (!isReady) return null;
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background.primary }}>
       <SafeAreaProvider>
-        <StatusBar style="light" />
-        <Stack screenOptions={{ headerShown: false }} />
+        <ToastProvider>
+          <StatusBar style={isDark ? 'light' : 'dark'} />
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.background.primary },
+              animation: 'fade',
+            }}
+          />
+        </ToastProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

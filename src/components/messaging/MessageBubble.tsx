@@ -1,15 +1,16 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { colors, spacing, typography, borderRadius } from '@/design';
+import { useColors } from '@/hooks/useColors';
+import { spacing, typography, borderRadius } from '@/design';
+import type { ThemeColors } from '@/design';
 import type { Message, MessageStatus } from '@/types';
 
 interface MessageBubbleProps {
   message: Message;
 }
 
-/** Format ISO timestamp to HH:MM. */
 function formatTime(iso: string): string {
   const date = new Date(iso);
   const hh = String(date.getHours()).padStart(2, '0');
@@ -19,8 +20,7 @@ function formatTime(iso: string): string {
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 
-/** Map MessageStatus → check-icon name and color for outbound messages. */
-function statusIcon(status: MessageStatus): { name: IconName; color: string } {
+function statusIcon(status: MessageStatus, colors: ThemeColors): { name: IconName; color: string } {
   switch (status) {
     case 'sending':
       return { name: 'clock-outline', color: colors.text.tertiary };
@@ -35,20 +35,16 @@ function statusIcon(status: MessageStatus): { name: IconName; color: string } {
   }
 }
 
-/**
- * Single chat message bubble.
- * - `outbound` (agent → contact): right-aligned, accent tint background, status icon.
- * - `inbound` (contact → agent): left-aligned, elevated surface background.
- */
 export function MessageBubble({ message }: MessageBubbleProps) {
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const isOutbound = message.role === 'outbound';
-  const icon = isOutbound ? statusIcon(message.status) : null;
+  const icon = isOutbound ? statusIcon(message.status, colors) : null;
 
   return (
     <View style={[styles.wrapper, isOutbound ? styles.wrapperOut : styles.wrapperIn]}>
       <View style={[styles.bubble, isOutbound ? styles.bubbleOut : styles.bubbleIn]}>
         <Text style={styles.content}>{message.content}</Text>
-
         <View style={styles.meta}>
           <Text style={styles.time}>{formatTime(message.sentAt)}</Text>
           {icon !== null && (
@@ -60,48 +56,33 @@ export function MessageBubble({ message }: MessageBubbleProps) {
   );
 }
 
-const BUBBLE_MAX_WIDTH = '78%';
-
-const styles = StyleSheet.create({
-  wrapper: {
-    paddingHorizontal: spacing[4],
-    paddingVertical: spacing[1],
-  },
-  wrapperIn: {
-    alignItems: 'flex-start',
-  },
-  wrapperOut: {
-    alignItems: 'flex-end',
-  },
-  bubble: {
-    maxWidth: BUBBLE_MAX_WIDTH,
-    paddingHorizontal: spacing[3],
-    paddingTop: spacing[2],
-    paddingBottom: spacing[1],
-    gap: spacing[1],
-  },
-  bubbleIn: {
-    backgroundColor: colors.background.elevated,
-    borderRadius: borderRadius.lg,
-    borderBottomLeftRadius: borderRadius.xs,
-  },
-  bubbleOut: {
-    backgroundColor: colors.accent.primaryMuted,
-    borderRadius: borderRadius.lg,
-    borderBottomRightRadius: borderRadius.xs,
-  },
-  content: {
-    ...typography.body,
-    color: colors.text.primary,
-  },
-  meta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    gap: spacing[1],
-  },
-  time: {
-    ...typography.caption2,
-    color: colors.text.tertiary,
-  },
-});
+const createStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    wrapper: { paddingHorizontal: spacing[4], paddingVertical: spacing[1] },
+    wrapperIn: { alignItems: 'flex-start' },
+    wrapperOut: { alignItems: 'flex-end' },
+    bubble: {
+      maxWidth: '80%',
+      paddingHorizontal: spacing[4],
+      paddingTop: spacing[3],
+      paddingBottom: spacing[2],
+      gap: spacing[1],
+    },
+    bubbleIn: {
+      backgroundColor: colors.background.tertiary,
+      borderRadius: borderRadius.xl,
+      borderTopLeftRadius: borderRadius.xs,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.separator.transparent,
+    },
+    bubbleOut: {
+      backgroundColor: colors.accent.primary + '22',
+      borderRadius: borderRadius.xl,
+      borderTopRightRadius: borderRadius.xs,
+      borderWidth: StyleSheet.hairlineWidth,
+      borderColor: colors.accent.primary + '30',
+    },
+    content: { ...typography.body, color: colors.text.primary, lineHeight: 22 },
+    meta: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: spacing[1] },
+    time: { ...typography.caption2, color: colors.text.tertiary },
+  });

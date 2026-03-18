@@ -1,21 +1,24 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useShallow } from 'zustand/react/shallow';
 
 import { useInboxStore } from '@/store/useInboxStore';
 import { Avatar } from '@/components/ui/Avatar';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { Pressable } from '@/components/ui/Pressable';
 import { ChannelBadge } from '@/components/messaging/ChannelBadge';
-import { colors, spacing, typography, borderRadius } from '@/design';
+import { useColors } from '@/hooks/useColors';
+import { spacing, typography, borderRadius, type ThemeColors } from '@/design';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -31,6 +34,15 @@ const PRIORITY_LABEL: Record<string, string> = {
   urgent: 'Urgente',
 };
 
+function getPriorityColor(colors: ThemeColors): Record<string, string> {
+  return {
+    low: colors.text.tertiary,
+    normal: colors.accent.info,
+    high: colors.accent.warning,
+    urgent: colors.accent.error,
+  };
+}
+
 const STATUS_LABEL: Record<string, string> = {
   open: 'Abierta',
   pending: 'Pendiente',
@@ -38,11 +50,20 @@ const STATUS_LABEL: Record<string, string> = {
   spam: 'Spam',
 };
 
+function getScoreColor(colors: ThemeColors, score: number): string {
+  if (score >= 0.7) return colors.accent.success;
+  if (score >= 0.4) return colors.accent.warning;
+  return colors.accent.error;
+}
+
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function ClientProfileScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
+  const colors = useColors();
+  const styles = useMemo(() => createStyles(colors), [colors]);
+  const priorityColor = useMemo(() => getPriorityColor(colors), [colors]);
 
   const conversations = useInboxStore(
     useShallow((s) => s.conversations)
@@ -52,17 +73,31 @@ export default function ClientProfileScreen() {
   const contact = conversation?.contact;
   const aiContext = conversation?.aiContext;
 
+  if (contact === undefined) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <Pressable onPress={() => router.back()} style={styles.closeButton}>
+            <MaterialCommunityIcons name="chevron-down" size={28} color={colors.text.primary} />
+          </Pressable>
+          <Text style={styles.headerTitle}>Perfil del cliente</Text>
+          <View style={styles.closeButton} />
+        </View>
+        <View style={styles.emptyState}>
+          <MaterialCommunityIcons name="account-question-outline" size={48} color={colors.text.tertiary} />
+          <Text style={styles.emptyText}>Conversacion no encontrada.</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      {/* ── Header ───────────────────────────────────────────────────────────── */}
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.closeButton} activeOpacity={0.7}>
-          <MaterialCommunityIcons
-            name="chevron-down"
-            size={28}
-            color={colors.text.primary}
-          />
-        </TouchableOpacity>
+        <Pressable onPress={() => router.back()} style={styles.closeButton}>
+          <MaterialCommunityIcons name="chevron-down" size={28} color={colors.text.primary} />
+        </Pressable>
         <Text style={styles.headerTitle}>Perfil del cliente</Text>
         <View style={styles.closeButton} />
       </View>
@@ -71,22 +106,25 @@ export default function ClientProfileScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {contact === undefined ? (
-          <Text style={styles.notFound}>Conversación no encontrada.</Text>
-        ) : (
-          <>
-            {/* ── Identity ─────────────────────────────────────────────────── */}
-            <View style={styles.identitySection}>
+        {/* ── Identity gradient card ───────────────────────────────────────── */}
+        <Animated.View entering={FadeInDown.duration(400).delay(50)}>
+          <LinearGradient
+            colors={[colors.accent.primary + '12', 'transparent']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.identityGradient}
+          >
+            <View style={styles.identityContent}>
               <Avatar
                 name={contact.name}
                 uri={contact.avatarUrl}
-                size={72}
+                size={80}
               />
               <Text style={styles.contactName}>{contact.name}</Text>
 
               {conversation !== undefined && (
-                <View style={styles.channelRow}>
-                  <ChannelBadge channel={conversation.channelType} size={20} />
+                <View style={styles.channelPill}>
+                  <ChannelBadge channel={conversation.channelType} size={16} />
                   <Text style={styles.channelLabel}>
                     {conversation.channelType.charAt(0).toUpperCase() +
                       conversation.channelType.slice(1)}
@@ -94,101 +132,103 @@ export default function ClientProfileScreen() {
                 </View>
               )}
             </View>
+          </LinearGradient>
+        </Animated.View>
 
-            {/* ── Contact details ──────────────────────────────────────────── */}
+        {/* ── Contact details ──────────────────────────────────────────────── */}
+        <Animated.View entering={FadeInDown.duration(400).delay(150)}>
+          <SectionHeader icon="card-account-details-outline" title="Datos de contacto" colors={colors} />
+          <GlassCard style={styles.card}>
+            {contact.phoneNumber !== undefined && (
+              <InfoRow icon="phone-outline" label="Telefono" value={contact.phoneNumber} colors={colors} />
+            )}
+            {contact.email !== undefined && (
+              <>
+                {contact.phoneNumber !== undefined && <Divider colors={colors} />}
+                <InfoRow icon="email-outline" label="Correo" value={contact.email} colors={colors} />
+              </>
+            )}
+            <Divider colors={colors} />
+            <InfoRow icon="clock-outline" label="Primer contacto" value={formatDate(contact.firstSeenAt)} colors={colors} />
+            <Divider colors={colors} />
+            <InfoRow icon="update" label="Ultima actividad" value={formatDate(contact.lastSeenAt)} colors={colors} />
+          </GlassCard>
+        </Animated.View>
+
+        {/* ── Conversation details ────────────────────────────────────────── */}
+        {conversation !== undefined && (
+          <Animated.View entering={FadeInDown.duration(400).delay(250)}>
+            <SectionHeader icon="message-text-outline" title="Esta conversacion" colors={colors} />
             <GlassCard style={styles.card}>
-              <Text style={styles.sectionTitle}>Datos de contacto</Text>
-
-              {contact.phoneNumber !== undefined && (
-                <InfoRow
-                  icon="phone-outline"
-                  label="Teléfono"
-                  value={contact.phoneNumber}
-                />
-              )}
-              {contact.email !== undefined && (
-                <InfoRow
-                  icon="email-outline"
-                  label="Correo"
-                  value={contact.email}
-                />
-              )}
               <InfoRow
-                icon="clock-outline"
-                label="Primer contacto"
-                value={formatDate(contact.firstSeenAt)}
+                icon="flag-outline"
+                label="Estado"
+                value={STATUS_LABEL[conversation.status] ?? conversation.status}
+                colors={colors}
               />
+              <Divider colors={colors} />
               <InfoRow
-                icon="update"
-                label="Última actividad"
-                value={formatDate(contact.lastSeenAt)}
+                icon="alert-circle-outline"
+                label="Prioridad"
+                value={PRIORITY_LABEL[conversation.priority] ?? conversation.priority}
+                valueColor={priorityColor[conversation.priority]}
+                colors={colors}
               />
-            </GlassCard>
-
-            {/* ── Conversation details ──────────────────────────────────────── */}
-            {conversation !== undefined && (
-              <GlassCard style={styles.card}>
-                <Text style={styles.sectionTitle}>Esta conversación</Text>
-                <InfoRow
-                  icon="flag-outline"
-                  label="Estado"
-                  value={STATUS_LABEL[conversation.status] ?? conversation.status}
-                />
-                <InfoRow
-                  icon="alert-circle-outline"
-                  label="Prioridad"
-                  value={PRIORITY_LABEL[conversation.priority] ?? conversation.priority}
-                />
-                {conversation.assignedAgent !== undefined && (
+              {conversation.assignedAgent !== undefined && (
+                <>
+                  <Divider colors={colors} />
                   <InfoRow
                     icon="account-outline"
-                    label="Agente asignado"
+                    label="Agente"
                     value={conversation.assignedAgent.name}
+                    colors={colors}
                   />
-                )}
-                <InfoRow
-                  icon="calendar-outline"
-                  label="Creada"
-                  value={formatDate(conversation.createdAt)}
-                />
-              </GlassCard>
-            )}
+                </>
+              )}
+              <Divider colors={colors} />
+              <InfoRow
+                icon="calendar-outline"
+                label="Creada"
+                value={formatDate(conversation.createdAt)}
+                colors={colors}
+              />
+            </GlassCard>
+          </Animated.View>
+        )}
 
-            {/* ── AI Context ───────────────────────────────────────────────── */}
-            {aiContext !== undefined && (
-              <GlassCard style={styles.card}>
-                <View style={styles.aiHeader}>
-                  <MaterialCommunityIcons
-                    name="robot-outline"
-                    size={16}
-                    color={colors.accent.purple}
-                  />
-                  <Text style={styles.sectionTitle}>Análisis IA</Text>
-                </View>
+        {/* ── AI Context ─────────────────────────────────────────────────── */}
+        {aiContext !== undefined && (
+          <Animated.View entering={FadeInDown.duration(400).delay(350)}>
+            <SectionHeader icon="robot-outline" title="Analisis IA" iconColor={colors.accent.purple} colors={colors} />
+            <GlassCard style={styles.card}>
+              {aiContext.summary !== undefined && (
+                <Text style={styles.aiSummary}>{aiContext.summary}</Text>
+              )}
 
-                {aiContext.summary !== undefined && (
-                  <Text style={styles.aiSummary}>{aiContext.summary}</Text>
-                )}
-
-                {aiContext.purchaseIntentScore !== undefined && (
-                  <View style={styles.scoreRow}>
-                    <Text style={styles.scoreLabel}>Intención de compra</Text>
-                    <View style={styles.scoreBarTrack}>
-                      <View
-                        style={[
-                          styles.scoreBarFill,
-                          { width: `${Math.round(aiContext.purchaseIntentScore * 100)}%` },
-                        ]}
-                      />
-                    </View>
-                    <Text style={styles.scoreValue}>
+              {aiContext.purchaseIntentScore !== undefined && (
+                <View style={styles.scoreSection}>
+                  <View style={styles.scoreHeader}>
+                    <Text style={styles.scoreLabel}>Intencion de compra</Text>
+                    <Text style={[styles.scoreValue, { color: getScoreColor(colors, aiContext.purchaseIntentScore) }]}>
                       {Math.round(aiContext.purchaseIntentScore * 100)}%
                     </Text>
                   </View>
-                )}
-              </GlassCard>
-            )}
-          </>
+                  <View style={styles.scoreBarTrack}>
+                    <Animated.View
+                      entering={FadeInDown.duration(600).delay(500)}
+                      style={[
+                        styles.scoreBarFill,
+                        {
+                          width: `${Math.round(aiContext.purchaseIntentScore * 100)}%`,
+                          backgroundColor: getScoreColor(colors, aiContext.purchaseIntentScore),
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+              )}
+            </GlassCard>
+          </Animated.View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -197,46 +237,115 @@ export default function ClientProfileScreen() {
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
-interface InfoRowProps {
+function SectionHeader({
+  icon,
+  title,
+  iconColor,
+  colors,
+}: {
   icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
-  label: string;
-  value: string;
-}
+  title: string;
+  iconColor?: string;
+  colors: ThemeColors;
+}) {
+  const sectionStyles = useMemo(() => createSectionStyles(colors), [colors]);
 
-function InfoRow({ icon, label, value }: InfoRowProps) {
   return (
-    <View style={infoStyles.row}>
-      <MaterialCommunityIcons name={icon} size={16} color={colors.text.tertiary} />
-      <Text style={infoStyles.label}>{label}</Text>
-      <Text style={infoStyles.value} numberOfLines={1}>{value}</Text>
+    <View style={sectionStyles.header}>
+      <View style={[sectionStyles.iconBg, iconColor !== undefined && { backgroundColor: iconColor + '20' }]}>
+        <MaterialCommunityIcons name={icon} size={14} color={iconColor ?? colors.text.secondary} />
+      </View>
+      <Text style={sectionStyles.title}>{title}</Text>
     </View>
   );
 }
 
-const infoStyles = StyleSheet.create({
-  row: {
+const createSectionStyles = (colors: ThemeColors) => StyleSheet.create({
+  header: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
-    paddingVertical: spacing[2],
+    marginBottom: spacing[2],
+    paddingLeft: spacing[1],
   },
-  label: {
-    ...typography.footnote,
-    color: colors.text.secondary,
-    width: 110,
-    flexShrink: 0,
+  iconBg: {
+    width: 24,
+    height: 24,
+    borderRadius: borderRadius.sm,
+    backgroundColor: colors.background.elevated,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  value: {
-    flex: 1,
-    ...typography.footnote,
-    color: colors.text.primary,
-    textAlign: 'right',
+  title: {
+    ...typography.caption1,
+    color: colors.text.tertiary,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
 });
 
-// ─── Styles ───────────────────────────────────────────────────────────────────
+interface InfoRowProps {
+  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  label: string;
+  value: string;
+  valueColor?: string;
+  colors: ThemeColors;
+}
 
-const styles = StyleSheet.create({
+function InfoRow({ icon, label, value, valueColor, colors }: InfoRowProps) {
+  const infoStyles = useMemo(() => createInfoStyles(colors), [colors]);
+
+  return (
+    <View style={infoStyles.row}>
+      <MaterialCommunityIcons name={icon} size={16} color={colors.text.tertiary} />
+      <Text style={infoStyles.label}>{label}</Text>
+      <Text
+        style={[infoStyles.value, valueColor !== undefined && { color: valueColor }]}
+        numberOfLines={1}
+      >
+        {value}
+      </Text>
+    </View>
+  );
+}
+
+function Divider({ colors }: { colors: ThemeColors }) {
+  const infoStyles = useMemo(() => createInfoStyles(colors), [colors]);
+  return <View style={infoStyles.divider} />;
+}
+
+const createInfoStyles = (colors: ThemeColors) => StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+  },
+  label: {
+    ...typography.subhead,
+    color: colors.text.secondary,
+    flex: 1,
+  },
+  value: {
+    ...typography.subhead,
+    color: colors.text.primary,
+    fontWeight: '500',
+    textAlign: 'right',
+    flexShrink: 0,
+    maxWidth: '50%',
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: colors.separator.transparent,
+    marginLeft: spacing[4] + 16 + spacing[3],
+  },
+});
+
+// ─── Styles ──────────────────────────────────────────────────────────────────
+
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.primary,
@@ -263,71 +372,87 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     padding: spacing[4],
-    gap: spacing[4],
+    gap: spacing[5],
     paddingBottom: spacing[12],
   },
-  notFound: {
+
+  /* Empty state */
+  emptyState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[3],
+  },
+  emptyText: {
     ...typography.body,
     color: colors.text.tertiary,
     textAlign: 'center',
-    marginTop: spacing[8],
   },
-  identitySection: {
+
+  /* Identity */
+  identityGradient: {
+    borderRadius: borderRadius.xl,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.separator.transparent,
+    overflow: 'hidden',
+  },
+  identityContent: {
     alignItems: 'center',
-    gap: spacing[3],
-    paddingVertical: spacing[4],
+    paddingVertical: spacing[8],
+    paddingHorizontal: spacing[4],
+    gap: spacing[2],
   },
   contactName: {
     ...typography.title2,
-    fontWeight: '600',
+    fontWeight: '700',
     color: colors.text.primary,
+    marginTop: spacing[2],
   },
-  channelRow: {
+  channelPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
+    backgroundColor: colors.background.tertiary,
+    borderRadius: borderRadius.full,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[1],
   },
   channelLabel: {
-    ...typography.footnote,
+    ...typography.caption1,
     color: colors.text.secondary,
   },
+
+  /* Cards */
   card: {
-    padding: spacing[4],
-    gap: spacing[1],
+    overflow: 'hidden',
   },
-  sectionTitle: {
-    ...typography.footnote,
-    color: colors.text.tertiary,
-    fontWeight: '600',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: spacing[1],
-  },
-  aiHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    marginBottom: spacing[2],
-  },
+
+  /* AI */
   aiSummary: {
     ...typography.subhead,
     color: colors.text.secondary,
-    lineHeight: 20,
+    lineHeight: 22,
+    padding: spacing[4],
   },
-  scoreRow: {
+  scoreSection: {
+    paddingHorizontal: spacing[4],
+    paddingBottom: spacing[4],
+    gap: spacing[2],
+  },
+  scoreHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[2],
-    marginTop: spacing[3],
+    justifyContent: 'space-between',
   },
   scoreLabel: {
     ...typography.footnote,
     color: colors.text.secondary,
-    width: 120,
-    flexShrink: 0,
+  },
+  scoreValue: {
+    ...typography.footnote,
+    fontWeight: '700',
   },
   scoreBarTrack: {
-    flex: 1,
     height: 6,
     backgroundColor: colors.background.elevated,
     borderRadius: borderRadius.full,
@@ -335,14 +460,6 @@ const styles = StyleSheet.create({
   },
   scoreBarFill: {
     height: '100%',
-    backgroundColor: colors.accent.success,
     borderRadius: borderRadius.full,
-  },
-  scoreValue: {
-    ...typography.footnote,
-    color: colors.accent.success,
-    fontWeight: '600',
-    width: 36,
-    textAlign: 'right',
   },
 });

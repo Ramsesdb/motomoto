@@ -40,7 +40,7 @@
         {
           "android": {
             "newArchEnabled": true,
-            "compileSdkVersion": 35,
+            "compileSdkVersion": 36,
             "kotlinVersion": "2.0.21"
           },
           "ios": {

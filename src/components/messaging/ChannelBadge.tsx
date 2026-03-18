@@ -2,12 +2,12 @@ import React from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
-import { colors, borderRadius, spacing } from '@/design';
+import { useColors } from '@/hooks/useColors';
+import { borderRadius, spacing } from '@/design';
 import type { ChannelType } from '@/types';
 
 interface ChannelBadgeProps {
   channel: ChannelType;
-  /** Diameter of the badge circle. Defaults to 28. */
   size?: number;
 }
 
@@ -21,11 +21,8 @@ const CHANNEL_ICON: Record<ChannelType, IconName> = {
   email: 'email',
 };
 
-/**
- * Circular badge showing the channel icon in its brand color.
- * Icon and background color are derived from `colors.channel` — never hardcoded.
- */
 export function ChannelBadge({ channel, size = 28 }: ChannelBadgeProps) {
+  const colors = useColors();
   const iconSize = Math.round(size * 0.57);
   const brandColor = colors.channel[channel];
 
@@ -37,7 +34,7 @@ export function ChannelBadge({ channel, size = 28 }: ChannelBadgeProps) {
           width: size,
           height: size,
           borderRadius: borderRadius.full,
-          backgroundColor: `${brandColor}26`, // ~15% opacity tint
+          backgroundColor: `${brandColor}26`,
         },
       ]}
     >
