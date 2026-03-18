@@ -41,7 +41,7 @@ interface MetricCardProps {
 function MetricCard({ label, value, icon, tint, gradientEnd, trend, onPress, index, styles, colors }: MetricCardProps) {
   return (
     <Animated.View
-      entering={FadeInDown.duration(400).delay(200 + index * 80)}
+      entering={FadeInDown.duration(250).delay(100 + index * 50)}
       style={styles.metricPressable}
     >
       <Pressable onPress={onPress} style={styles.metricPressableInner}>
@@ -137,7 +137,7 @@ export default function HomeScreen() {
         }
       >
         {/* ── Header ─────────────────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(400).delay(50)} style={styles.header}>
+        <Animated.View entering={FadeInDown.duration(250).delay(0)} style={styles.header}>
           <View style={styles.headerText}>
             <Text style={styles.greeting}>{greeting},</Text>
             <Text style={styles.userName}>{firstName}</Text>
@@ -153,7 +153,7 @@ export default function HomeScreen() {
         </Animated.View>
 
         {/* ── Metrics grid ───────────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(400).delay(120)}>
+        <Animated.View entering={FadeInDown.duration(250).delay(50)}>
           <View style={styles.sectionRow}>
             <Text style={styles.sectionTitle}>Resumen del día</Text>
             <Text style={styles.dateLabel}>{dateLabel}</Text>
@@ -215,38 +215,53 @@ export default function HomeScreen() {
         )}
 
         {/* ── Quick actions ──────────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(400).delay(550)}>
+        <Animated.View entering={FadeInDown.duration(250).delay(300)}>
           <Text style={styles.sectionTitle}>Acceso rápido</Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.duration(400).delay(620)} style={styles.quickRow}>
-          <Pressable onPress={goToInbox} style={styles.quickActionBtn}>
+        <Animated.View entering={FadeInDown.duration(250).delay(350)} style={styles.quickCol}>
+          <Pressable onPress={goToInbox}>
             <LinearGradient
-              colors={[colors.accent.primary + '20', colors.accent.primary + '08']}
+              colors={[colors.accent.primary + '14', colors.accent.primary + '06']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.quickGradient}
             >
               <View style={styles.quickIconCircle}>
-                <MaterialCommunityIcons name="message-text" size={20} color={colors.accent.primary} />
+                <MaterialCommunityIcons name="message-text" size={18} color={colors.accent.primary} />
               </View>
               <Text style={styles.quickLabel}>Mensajes</Text>
-              <MaterialCommunityIcons name="arrow-right" size={16} color={colors.text.tertiary} />
+              <MaterialCommunityIcons name="chevron-right" size={18} color={colors.text.tertiary} />
             </LinearGradient>
           </Pressable>
 
-          <Pressable onPress={() => router.push('/ai' as never)} style={styles.quickActionBtn}>
+          <Pressable onPress={() => router.push('/ai' as never)}>
             <LinearGradient
-              colors={[colors.accent.purple + '20', colors.accent.purple + '08']}
+              colors={[colors.accent.purple + '14', colors.accent.purple + '06']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.quickGradient}
             >
               <View style={[styles.quickIconCircle, { backgroundColor: colors.accent.purpleMuted }]}>
-                <MaterialCommunityIcons name="robot" size={20} color={colors.accent.purple} />
+                <MaterialCommunityIcons name="robot" size={18} color={colors.accent.purple} />
               </View>
               <Text style={styles.quickLabel}>Centro IA</Text>
-              <MaterialCommunityIcons name="arrow-right" size={16} color={colors.text.tertiary} />
+              <MaterialCommunityIcons name="chevron-right" size={18} color={colors.text.tertiary} />
+            </LinearGradient>
+          </Pressable>
+
+          <Pressable onPress={() => router.push('/team' as never)}>
+            <LinearGradient
+              colors={[colors.accent.success + '14', colors.accent.success + '06']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.quickGradient}
+            >
+              <View style={[styles.quickIconCircle, { backgroundColor: colors.accent.successMuted }]}>
+                <MaterialCommunityIcons name="account-group" size={18} color={colors.accent.success} />
+              </View>
+              <Text style={styles.quickLabel}>Equipo</Text>
+              <MaterialCommunityIcons name="chevron-right" size={18} color={colors.text.tertiary} />
             </LinearGradient>
           </Pressable>
         </Animated.View>
@@ -380,32 +395,29 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
 
   /* Quick actions */
-  quickRow: {
-    flexDirection: 'row',
-    gap: spacing[3],
-  },
-  quickActionBtn: {
-    flex: 1,
+  quickCol: {
+    gap: spacing[2],
   },
   quickGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[3],
-    padding: spacing[4],
-    borderRadius: borderRadius.xl,
+    paddingVertical: spacing[3],
+    paddingHorizontal: spacing[4],
+    borderRadius: borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.separator.transparent,
   },
   quickIconCircle: {
-    width: 36,
-    height: 36,
+    width: 32,
+    height: 32,
     borderRadius: borderRadius.full,
     backgroundColor: colors.accent.primaryMuted,
     alignItems: 'center',
     justifyContent: 'center',
   },
   quickLabel: {
-    ...typography.subhead,
+    ...typography.callout,
     fontWeight: '600',
     color: colors.text.primary,
     flex: 1,

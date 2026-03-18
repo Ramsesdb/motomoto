@@ -6,7 +6,6 @@ import { useColors } from '@/hooks/useColors';
 
 export default function AppLayout() {
   const isManager = useRole('manager');
-  const isAdmin = useRole('admin');
   const colors = useColors();
 
   return (
@@ -21,18 +20,13 @@ export default function AppLayout() {
       <Tabs.Screen name="inbox" options={{ title: 'Mensajes' }} />
       <Tabs.Screen name="ai" options={{ title: 'IA' }} />
       <Tabs.Screen
-        name="team"
-        options={{ title: 'Equipo', href: isManager ? undefined : null }}
-      />
-      <Tabs.Screen
         name="reports"
         options={{ title: 'Reportes', href: isManager ? undefined : null }}
       />
       <Tabs.Screen name="profile" options={{ title: 'Perfil' }} />
-      <Tabs.Screen
-        name="settings"
-        options={{ title: 'Ajustes', href: isAdmin ? undefined : null }}
-      />
+      {/* Hidden from tab bar — accessible via navigation */}
+      <Tabs.Screen name="team" options={{ href: null }} />
+      <Tabs.Screen name="settings" options={{ href: null }} />
     </Tabs>
   );
 }

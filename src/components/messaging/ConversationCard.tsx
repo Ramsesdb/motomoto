@@ -2,9 +2,8 @@ import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Swipeable } from 'react-native-gesture-handler';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-
 import { useColors } from '@/hooks/useColors';
+import { triggerHaptic } from '@/hooks/useHaptics';
 import { spacing, typography, borderRadius } from '@/design';
 import type { ThemeColors } from '@/design';
 import { Avatar } from '@/components/ui/Avatar';
@@ -46,7 +45,7 @@ function RightActions({ colors, onArchive }: { colors: ThemeColors; onArchive?: 
   return (
     <Pressable
       onPress={() => {
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        triggerHaptic();
         onArchive?.();
       }}
       style={[actionStyles.action, { backgroundColor: colors.accent.warning }]}
@@ -61,7 +60,7 @@ function LeftActions({ colors, onPin }: { colors: ThemeColors; onPin?: () => voi
   return (
     <Pressable
       onPress={() => {
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        triggerHaptic();
         onPin?.();
       }}
       style={[actionStyles.action, { backgroundColor: colors.accent.primary }]}

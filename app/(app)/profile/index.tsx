@@ -6,12 +6,14 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useShallow } from 'zustand/react/shallow';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
 import { useAuthStore } from '@/store/useAuthStore';
+import { useRole } from '@/hooks/useRole';
 import { useThemeStore, type ThemePreference } from '@/store/useThemeStore';
 import { Avatar } from '@/components/ui/Avatar';
 import { GlassCard } from '@/components/ui/GlassCard';
@@ -33,9 +35,12 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 export default function ProfileScreen() {
+  const router = useRouter();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const rStyles = useMemo(() => createRowStyles(colors), [colors]);
+  const isManager = useRole('manager');
+  const isAdmin = useRole('admin');
 
   const { user, signOut } = useAuthStore(
     useShallow((s) => ({ user: s.user, signOut: s.signOut }))
@@ -76,12 +81,12 @@ export default function ProfileScreen() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* -- Header --------------------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(400).delay(50)}>
+        <Animated.View entering={FadeInDown.duration(250).delay(50)}>
           <Text style={styles.screenTitle}>Perfil</Text>
         </Animated.View>
 
         {/* -- Identity card -------------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(400).delay(120)}>
+        <Animated.View entering={FadeInDown.duration(250).delay(120)}>
           <LinearGradient
             colors={[colors.accent.primary + '12', 'transparent']}
             start={{ x: 0, y: 0 }}
@@ -124,7 +129,7 @@ export default function ProfileScreen() {
         </Animated.View>
 
         {/* -- Account section ------------------------------------------------ */}
-        <Animated.View entering={FadeInDown.duration(400).delay(240)}>
+        <Animated.View entering={FadeInDown.duration(250).delay(150)}>
           <Text style={styles.sectionLabel}>CUENTA</Text>
           <GlassCard style={styles.section}>
             <SettingsRow
@@ -147,8 +152,32 @@ export default function ProfileScreen() {
           </GlassCard>
         </Animated.View>
 
+        {/* -- Management section (team + settings) ----------------------------- */}
+        {isManager && (
+          <Animated.View entering={FadeInDown.duration(250).delay(200)}>
+            <Text style={styles.sectionLabel}>GESTIÓN</Text>
+            <GlassCard style={styles.section}>
+              <SettingsRow
+                icon="account-group-outline"
+                label="Equipo"
+                onPress={() => router.push('/team' as never)}
+              />
+              {isAdmin && (
+                <>
+                  <View style={styles.rowDivider} />
+                  <SettingsRow
+                    icon="cog-outline"
+                    label="Ajustes de organización"
+                    onPress={() => router.push('/settings' as never)}
+                  />
+                </>
+              )}
+            </GlassCard>
+          </Animated.View>
+        )}
+
         {/* -- Preferences section -------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(400).delay(340)}>
+        <Animated.View entering={FadeInDown.duration(250).delay(340)}>
           <Text style={styles.sectionLabel}>PREFERENCIAS</Text>
           <GlassCard style={styles.section}>
             <SettingsRow
@@ -175,7 +204,7 @@ export default function ProfileScreen() {
         </Animated.View>
 
         {/* -- Sign out ------------------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(400).delay(440)}>
+        <Animated.View entering={FadeInDown.duration(250).delay(440)}>
           <Pressable onPress={handleSignOut} style={styles.signOutButton}>
             <MaterialCommunityIcons name="logout" size={18} color={colors.accent.error} />
             <Text style={styles.signOutLabel}>Cerrar sesion</Text>
@@ -341,7 +370,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.text.tertiary,
     fontWeight: '600',
     letterSpacing: 0.8,
-    marginBottom: -spacing[2],
+    marginBottom: spacing[2],
     paddingLeft: spacing[1],
   },
   section: {
