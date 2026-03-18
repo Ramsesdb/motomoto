@@ -17,11 +17,9 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.motomoto.app",
-      "newArchEnabled": true
+      "bundleIdentifier": "com.motomoto.app"
     },
     "android": {
-      "newArchEnabled": true,
       "package": "com.motomoto.app",
       "adaptiveIcon": {
         "backgroundColor": "#0A0A0A",
@@ -41,8 +39,12 @@
         "expo-build-properties",
         {
           "android": {
+            "newArchEnabled": true,
             "compileSdkVersion": 35,
             "kotlinVersion": "2.0.21"
+          },
+          "ios": {
+            "newArchEnabled": true
           }
         }
       ],
