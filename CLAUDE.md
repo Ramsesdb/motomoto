@@ -1,29 +1,56 @@
-# Motomoto — Claude Code Context
+# Motomoto (m2-front) — Claude Code Context
 
-Mobile CRM and unified messaging platform.
-**Stack:** Expo SDK 55 · React Native 0.83 · TypeScript strict · Expo Router v55 · Zustand v5 · New Architecture (Fabric)
+Monorepo for the Motomoto mobile CRM and unified messaging platform.
+**Package manager:** pnpm 9.x (via Corepack) · **Task runner:** Turborepo v2 · **Stack:** Expo SDK 55 · React Native 0.83 · TypeScript strict · Expo Router v55 · Zustand v5 · New Architecture (Fabric)
 
 ---
 
-## Project Structure
+## Monorepo Structure
 
 ```
-src/
-  types/        ← shared TypeScript interfaces (no logic)
-  design/       ← visual tokens only (no components)
-  mock/         ← typed mock data (no real API calls)
-  services/     ← API + external service layer
-  store/        ← Zustand stores (global state)
-  hooks/        ← custom React hooks
-  components/
-    ui/         ← primitive components (GlassCard, Avatar, etc.)
-    messaging/  ← chat/inbox-specific components
-    ai/         ← AI feature components
-    navigation/ ← TabBar and navigation chrome
-app/            ← Expo Router screens (thin — logic in hooks/stores)
+m2-front/
+├── apps/
+│   └── mobile/              — @m2/mobile (Expo app)
+│       ├── app/             ← Expo Router screens (thin — logic in hooks/stores)
+│       ├── src/
+│       │   ├── components/  ← ui/, messaging/, ai/, navigation/
+│       │   ├── hooks/
+│       │   ├── services/
+│       │   ├── store/       ← Zustand stores
+│       │   ├── mock/
+│       │   └── constants.ts
+│       ├── App.tsx, index.ts, app.json, eas.json
+│       ├── babel.config.js, metro.config.js
+│       ├── tsconfig.json    ← extends ../../tsconfig.base.json
+│       └── package.json
+├── packages/
+│   ├── types/               — @m2/types  (shared TypeScript interfaces)
+│   │   └── src/{user,channel,message,conversation,api,websocket,index}.ts
+│   └── design/              — @m2/design (color/spacing/typography tokens)
+│       └── src/{colors,typography,spacing,index}.ts
+├── pnpm-workspace.yaml
+├── turbo.json
+├── tsconfig.base.json
+└── package.json             ← workspace runner
 ```
 
-Path alias: `@/` → `src/`. Always use `@/`, never relative paths.
+## Path Aliases
+
+- **Inside `apps/mobile/`**: `@/*` → `apps/mobile/src/*` (still works for components, hooks, services, store, mock, constants).
+- **Across workspace**: types and design tokens come from `@m2/types` and `@m2/design` (`workspace:*` protocol). **Never** import types/design via `@/`.
+
+Example:
+
+```ts
+// GOOD
+import { User, ROLE_HIERARCHY } from '@m2/types';
+import { colors, spacing } from '@m2/design';
+import { ChatInput } from '@/components/messaging/ChatInput';
+
+// BAD — @/types and @/design no longer exist
+import { User } from '@/types';
+import { colors } from '@/design';
+```
 
 ---
 
@@ -31,22 +58,23 @@ Path alias: `@/` → `src/`. Always use `@/`, never relative paths.
 
 | Phase | Description | Status |
 |-------|-------------|--------|
-| 0 | Project initialization | ✅ Done |
-| 1 | TypeScript types | ✅ Done |
-| 2 | Design system | ⬜ Next |
-| 3 | Mock data | ⬜ |
-| 4 | Service stubs | ⬜ |
-| 5 | Zustand stores | ⬜ |
-| 6 | Base UI components | ⬜ |
-| 7 | Messaging components | ⬜ |
-| 8 | Navigation shell | ⬜ |
-| 9 | Screens | ⬜ |
+| 0 | Project initialization | Done |
+| 1 | TypeScript types | Done |
+| 2 | Design system | Done |
+| 3 | Mock data | Done |
+| 4 | Service stubs | Done |
+| 5 | Zustand stores | Done |
+| M | Monorepo migration (pnpm + Turborepo) | Done |
+| 6 | Base UI components | Done |
+| 7 | Messaging components | Done |
+| 8 | Navigation shell | Done |
+| 9 | Screens | In progress |
 
 ---
 
 ## Phase 1 — Types (Done)
 
-All files in `src/types/`:
+All files live in `packages/types/src/` (importable as `@m2/types`):
 
 | File | Key exports |
 |------|-------------|
@@ -67,19 +95,19 @@ All files in `src/types/`:
 - No `any` — use `unknown` + type guards
 - No `!` non-null assertions — use `?.` or explicit checks
 - AI fields are **always optional**: `aiContext?`, `suggestedReply?`, `classification?`
-- Run `npx tsc --noEmit` before marking any phase complete
+- Run `pnpm -w typecheck` before marking any phase complete (replaces the old `npx tsc --noEmit`)
 
 ### Architecture
 - **Role checks** — always `hasMinRole('manager')` via `ROLE_HIERARCHY`, never `user.role === 'manager'`
 - **Zustand selectors** — wrap object/array selectors with `useShallow` from `zustand/react/shallow`
-- **AI calls** — only through `src/services/ai.ts` (never direct from components)
+- **AI calls** — only through `apps/mobile/src/services/ai.ts` (never direct from components)
 - **WebSocket events** — dispatch to Zustand store actions directly, never through React Context
 - **Auth tokens** — `expo-secure-store` only, never `AsyncStorage`
 - **Images** — `expo-image` only, never RN's built-in `<Image>`
 - **Screens are thin** — all logic lives in stores and hooks
 
 ### Styling
-- No hardcoded colors, spacing, or radii — all values from `src/design/`
+- No hardcoded colors, spacing, or radii — all values from `@m2/design`
 - Blur/glass → `GlassCard` component (wraps `expo-blur`)
 - Animations → `react-native-reanimated` v4 with `withSpring`, never `Animated` from RN
 - Keyboard → `<KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>`
@@ -88,6 +116,13 @@ All files in `src/types/`:
 - All mock objects must satisfy interfaces exactly — no `any`, no `Partial<>`
 - Names and messages in **Spanish** (Latin American)
 - `MOCK_CURRENT_USER` defaults to `role: 'manager'`
+
+### Tooling
+- **Package manager is pnpm 9.x** — never `npm install` at any level
+- **Workspace installs**: always run `pnpm install` from the repo root
+- **Filtered commands**: `pnpm --filter @m2/mobile <cmd>` or shortcut `pnpm mobile <cmd>`
+- **Typecheck**: `pnpm -w typecheck` (fans out to all three workspaces via Turbo)
+- **Never commit** `node_modules/`, `.turbo/`, `.expo/`, or `pnpm-lock.yaml` outside the repo root
 
 ---
 
@@ -116,4 +151,4 @@ Node: **20.19.4** (`nvm use` reads `.nvmrc` automatically)
 - `newArchEnabled: true` — do not disable
 - `typedRoutes: true` — use typed `href` props, not raw strings
 - Expo Go won't work for Google Sign-In → use `expo-dev-client`
-- `USE_NATIVE_GOOGLE_SIGNIN` flag in `src/constants.ts` controls auth flow
+- `USE_NATIVE_GOOGLE_SIGNIN` flag in `apps/mobile/src/constants.ts` controls auth flow
