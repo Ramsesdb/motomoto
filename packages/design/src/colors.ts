@@ -1,5 +1,4 @@
-import type { ChannelType } from '@/types';
-import type { UserStatus } from '@/types';
+import type { ChannelType, UserStatus } from '@m2/types';
 
 // ─── Theme color shape ───────────────────────────────────────────────────────
 

@@ -10,6 +10,9 @@
     "typecheck": "tsc --noEmit",
     "clean": "rimraf .turbo"
   },
+  "dependencies": {
+    "@m2/types": "workspace:*"
+  },
   "devDependencies": {
     "typescript": "~5.9.2"
   }

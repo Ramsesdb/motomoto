@@ -128,6 +128,10 @@ importers:
         version: 5.9.3
 
   packages/design:
+    dependencies:
+      '@m2/types':
+        specifier: workspace:*
+        version: link:../types
     devDependencies:
       typescript:
         specifier: ~5.9.2
