@@ -3,6 +3,9 @@
 # dependencies
 node_modules/
 
+# Turborepo
+.turbo/
+
 # Expo
 .expo/
 dist/

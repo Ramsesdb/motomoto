@@ -1,0 +1,16 @@
+{
+  "name": "@m2/types",
+  "version": "0.0.0",
+  "private": true,
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false,
+  "files": ["src"],
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf .turbo"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2"
+  }
+}
