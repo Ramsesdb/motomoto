@@ -18,7 +18,8 @@ import { useThemeStore, type ThemePreference } from '@/store/useThemeStore';
 import { Avatar } from '@/components/ui/Avatar';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Pressable } from '@/components/ui/Pressable';
-import { spacing, typography, borderRadius } from '@/design';
+import { spacing, borderRadius } from '@/design';
+import { fontFamily, typography } from '@/design/typography';
 import type { ThemeColors } from '@/design';
 import { useColors } from '@/hooks/useColors';
 
@@ -64,15 +65,13 @@ export default function ProfileScreen() {
     }
   }
 
-  function getStatusColor(status: string): string {
-    if (status === 'online') return colors.status.online;
-    if (status === 'away') return colors.status.away;
-    return colors.status.offline;
-  }
-
   async function handleSignOut() {
     await signOut();
   }
+
+  const roleLabel = user?.role !== undefined ? (ROLE_LABEL[user.role] ?? user.role) : '';
+  const statusLabel = user?.status !== undefined ? (STATUS_LABEL[user.status] ?? user.status) : '';
+  const roleStatusLine = [roleLabel, statusLabel].filter(Boolean).join(' - ');
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -88,7 +87,7 @@ export default function ProfileScreen() {
         {/* -- Identity card -------------------------------------------------- */}
         <Animated.View entering={FadeInDown.duration(200).delay(120)}>
           <LinearGradient
-            colors={[colors.accent.primary + '12', 'transparent']}
+            colors={[colors.primary + '12', 'transparent']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.identityGradient}
@@ -98,32 +97,18 @@ export default function ProfileScreen() {
                 <Avatar
                   name={user?.name ?? '?'}
                   uri={user?.avatarUrl}
-                  size={80}
+                  size={96}
                   status={user?.status}
                 />
                 <View style={styles.cameraOverlay}>
-                  <MaterialCommunityIcons name="camera" size={14} color={colors.text.primary} />
+                  <MaterialCommunityIcons name="camera" size={14} color={colors.onPrimary} />
                 </View>
               </Pressable>
-              <Text style={styles.userName}>{user?.name ?? '—'}</Text>
-              <Text style={styles.userEmail}>{user?.email ?? '—'}</Text>
-              <View style={styles.badgeRow}>
-                {user?.role !== undefined && (
-                  <View style={styles.roleBadge}>
-                    <Text style={styles.roleBadgeText}>
-                      {ROLE_LABEL[user.role] ?? user.role}
-                    </Text>
-                  </View>
-                )}
-                {user?.status !== undefined && (
-                  <View style={styles.statusPill}>
-                    <View style={[styles.statusDot, { backgroundColor: getStatusColor(user.status) }]} />
-                    <Text style={styles.statusText}>
-                      {STATUS_LABEL[user.status] ?? user.status}
-                    </Text>
-                  </View>
-                )}
-              </View>
+              <Text style={styles.userName}>{user?.name ?? '\u2014'}</Text>
+              <Text style={styles.userEmail}>{user?.email ?? '\u2014'}</Text>
+              {roleStatusLine.length > 0 && (
+                <Text style={styles.roleStatusLine}>{roleStatusLine}</Text>
+              )}
             </View>
           </LinearGradient>
         </Animated.View>
@@ -146,32 +131,28 @@ export default function ProfileScreen() {
             <View style={styles.rowDivider} />
             <SettingsRow
               icon="shield-account-outline"
-              label="Privacidad y seguridad"
+              label="Privacidad"
               onPress={() => { /* TODO */ }}
             />
           </GlassCard>
         </Animated.View>
 
-        {/* -- Management section (team + settings) ----------------------------- */}
+        {/* -- Management section (role-gated) -------------------------------- */}
         {isManager && (
           <Animated.View entering={FadeInDown.duration(200).delay(200)}>
-            <Text style={styles.sectionLabel}>GESTIÓN</Text>
+            <Text style={styles.sectionLabel}>GESTION</Text>
             <GlassCard style={styles.section}>
               <SettingsRow
                 icon="account-group-outline"
                 label="Equipo"
                 onPress={() => router.push('/team' as never)}
               />
-              {isAdmin && (
-                <>
-                  <View style={styles.rowDivider} />
-                  <SettingsRow
-                    icon="cog-outline"
-                    label="Ajustes de organización"
-                    onPress={() => router.push('/settings' as never)}
-                  />
-                </>
-              )}
+              <View style={styles.rowDivider} />
+              <SettingsRow
+                icon="cog-outline"
+                label="Configuracion de organizacion"
+                onPress={() => router.push('/settings' as never)}
+              />
             </GlassCard>
           </Animated.View>
         )}
@@ -190,25 +171,23 @@ export default function ProfileScreen() {
             <SettingsRow
               icon="translate"
               label="Idioma"
-              value="Español"
+              value="Espanol"
               onPress={() => { /* TODO */ }}
             />
             <View style={styles.rowDivider} />
             <SettingsRow
               icon="information-outline"
               label="Acerca de"
-              value="v1.0.0"
               onPress={() => { /* TODO */ }}
             />
+            <View style={styles.rowDivider} />
+            <SettingsRow
+              icon="logout"
+              label="Cerrar sesion"
+              labelColor={colors.error}
+              onPress={handleSignOut}
+            />
           </GlassCard>
-        </Animated.View>
-
-        {/* -- Sign out ------------------------------------------------------- */}
-        <Animated.View entering={FadeInDown.duration(200).delay(440)}>
-          <Pressable onPress={handleSignOut} style={styles.signOutButton}>
-            <MaterialCommunityIcons name="logout" size={18} color={colors.accent.error} />
-            <Text style={styles.signOutLabel}>Cerrar sesion</Text>
-          </Pressable>
         </Animated.View>
       </ScrollView>
     </SafeAreaView>
@@ -221,23 +200,30 @@ interface SettingsRowProps {
   icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
   label: string;
   value?: string;
+  labelColor?: string;
   onPress: () => void;
 }
 
-function SettingsRow({ icon, label, value, onPress }: SettingsRowProps) {
+function SettingsRow({ icon, label, value, labelColor, onPress }: SettingsRowProps) {
   const colors = useColors();
   const rowStyles = useMemo(() => createRowStyles(colors), [colors]);
 
   return (
     <Pressable onPress={onPress} style={rowStyles.row}>
       <View style={rowStyles.iconCircle}>
-        <MaterialCommunityIcons name={icon} size={18} color={colors.text.secondary} />
+        <MaterialCommunityIcons
+          name={icon}
+          size={18}
+          color={labelColor ?? colors.onSurfaceVariant}
+        />
       </View>
-      <Text style={rowStyles.label}>{label}</Text>
+      <Text style={[rowStyles.label, labelColor !== undefined ? { color: labelColor } : undefined]}>
+        {label}
+      </Text>
       {value !== undefined && (
         <Text style={rowStyles.value}>{value}</Text>
       )}
-      <MaterialCommunityIcons name="chevron-right" size={18} color={colors.text.tertiary} />
+      <MaterialCommunityIcons name="chevron-right" size={18} color={colors.onSurfaceVariant} />
     </Pressable>
   );
 }
@@ -255,18 +241,20 @@ const createRowStyles = (colors: ThemeColors) => StyleSheet.create({
     width: 32,
     height: 32,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.background.elevated,
+    backgroundColor: colors.surfaceContainerHigh,
     alignItems: 'center',
     justifyContent: 'center',
   },
   label: {
     flex: 1,
+    fontFamily: fontFamily.bodyRegular,
     ...typography.callout,
-    color: colors.text.primary,
+    color: colors.onSurface,
   },
   value: {
+    fontFamily: fontFamily.bodyRegular,
     ...typography.subhead,
-    color: colors.text.tertiary,
+    color: colors.onSurfaceVariant,
   },
 });
 
@@ -275,7 +263,7 @@ const createRowStyles = (colors: ThemeColors) => StyleSheet.create({
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.surfaceBackground,
   },
   scrollContent: {
     paddingHorizontal: spacing[4],
@@ -283,9 +271,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     gap: spacing[4],
   },
   screenTitle: {
+    fontFamily: fontFamily.displayBold,
     ...typography.largeTitle,
     fontWeight: '700',
-    color: colors.text.primary,
+    color: colors.onSurface,
     paddingTop: spacing[4],
   },
 
@@ -293,7 +282,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   identityGradient: {
     borderRadius: borderRadius.xl,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator.transparent,
+    borderColor: colors.outlineVariant,
     overflow: 'hidden',
   },
   identityCard: {
@@ -312,64 +301,39 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accent.primary,
+    backgroundColor: colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 3,
-    borderColor: colors.background.primary,
+    borderColor: colors.surfaceBackground,
   },
   userName: {
+    fontFamily: fontFamily.displayBold,
     ...typography.title2,
     fontWeight: '700',
-    color: colors.text.primary,
+    color: colors.onSurface,
     marginTop: spacing[2],
   },
   userEmail: {
+    fontFamily: fontFamily.bodyRegular,
     ...typography.subhead,
-    color: colors.text.secondary,
+    color: colors.onSurfaceVariant,
   },
-  badgeRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[2],
-    marginTop: spacing[2],
-  },
-  roleBadge: {
-    backgroundColor: colors.accent.primaryMuted,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1],
-  },
-  roleBadgeText: {
+  roleStatusLine: {
+    fontFamily: fontFamily.bodyRegular,
     ...typography.caption1,
-    color: colors.accent.primary,
-    fontWeight: '600',
-  },
-  statusPill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    backgroundColor: colors.background.tertiary,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[1],
-  },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: borderRadius.full,
-  },
-  statusText: {
-    ...typography.caption1,
-    color: colors.text.secondary,
+    color: colors.onSurfaceVariant,
+    marginTop: spacing[1],
   },
 
   /* Sections */
   sectionLabel: {
+    fontFamily: fontFamily.bodyRegular,
     ...typography.caption1,
-    color: colors.text.tertiary,
+    color: colors.onSurfaceVariant,
     fontWeight: '600',
     letterSpacing: 0.8,
+    textTransform: 'uppercase',
     marginBottom: spacing[2],
     paddingLeft: spacing[1],
   },
@@ -379,25 +343,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   rowDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.separator.transparent,
+    backgroundColor: colors.outlineVariant,
     marginLeft: spacing[4] + 32 + spacing[3],
-  },
-
-  /* Sign out */
-  signOutButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing[2],
-    paddingVertical: spacing[4],
-    borderRadius: borderRadius.xl,
-    borderWidth: 1,
-    borderColor: colors.accent.error + '30',
-    backgroundColor: colors.accent.errorMuted,
-  },
-  signOutLabel: {
-    ...typography.callout,
-    fontWeight: '600',
-    color: colors.accent.error,
   },
 });

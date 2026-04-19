@@ -7,8 +7,9 @@ import { triggerHaptic } from '@/hooks/useHaptics';
 import { spacing, typography, borderRadius } from '@/design';
 import type { ThemeColors } from '@/design';
 import { Avatar } from '@/components/ui/Avatar';
+import { GlassCard } from '@/components/ui/GlassCard';
 import { Pressable } from '@/components/ui/Pressable';
-import { ChannelBadge } from './ChannelBadge';
+import { ChannelBadge } from '@/components/messaging/ChannelBadge';
 import type { Conversation } from '@/types';
 
 interface ConversationCardProps {
@@ -50,8 +51,8 @@ function RightActions({ colors, onArchive }: { colors: ThemeColors; onArchive?: 
       }}
       style={[actionStyles.action, { backgroundColor: colors.accent.warning }]}
     >
-      <MaterialCommunityIcons name="archive-outline" size={22} color="#FFFFFF" />
-      <Text style={actionStyles.label}>Archivar</Text>
+      <MaterialCommunityIcons name="archive-outline" size={22} color={colors.onPrimary} />
+      <Text style={[actionStyles.label, { color: colors.onPrimary }]}>Archivar</Text>
     </Pressable>
   );
 }
@@ -65,8 +66,8 @@ function LeftActions({ colors, onPin }: { colors: ThemeColors; onPin?: () => voi
       }}
       style={[actionStyles.action, { backgroundColor: colors.accent.primary }]}
     >
-      <MaterialCommunityIcons name="pin-outline" size={22} color="#FFFFFF" />
-      <Text style={actionStyles.label}>Fijar</Text>
+      <MaterialCommunityIcons name="pin-outline" size={22} color={colors.onPrimary} />
+      <Text style={[actionStyles.label, { color: colors.onPrimary }]}>Fijar</Text>
     </Pressable>
   );
 }
@@ -80,7 +81,6 @@ const actionStyles = StyleSheet.create({
   },
   label: {
     ...typography.caption2,
-    color: '#FFFFFF',
     fontWeight: '600',
   },
 });
@@ -93,44 +93,45 @@ export function ConversationCard({ conversation, onPress, onArchive, onPin }: Co
   const priorityColor = getPriorityColor(priority, colors);
 
   const cardContent = (
-    <Pressable onPress={() => onPress(conversation.id)} style={styles.pressable}>
-      <View style={styles.row}>
-        {priorityColor !== undefined && (
-          <View style={[styles.priorityStripe, { backgroundColor: priorityColor }]} />
-        )}
-        <View style={styles.avatarWrapper}>
-          <Avatar name={contact.name} uri={contact.avatarUrl} size={48} />
-          <View style={styles.channelBadgeOverlay}>
-            <ChannelBadge channel={channelType} size={20} />
+    <GlassCard style={styles.glassWrapper}>
+      <Pressable onPress={() => onPress(conversation.id)} style={styles.pressable}>
+        <View style={styles.row}>
+          {priorityColor !== undefined && (
+            <View style={[styles.priorityStripe, { backgroundColor: priorityColor }]} />
+          )}
+          <View style={styles.avatarWrapper}>
+            <Avatar name={contact.name} uri={contact.avatarUrl} size={48} />
+            <View style={styles.channelBadgeOverlay}>
+              <ChannelBadge channel={channelType} size={20} />
+            </View>
+          </View>
+          <View style={styles.content}>
+            <View style={styles.topRow}>
+              <Text style={[styles.name, hasUnread && styles.nameUnread]} numberOfLines={1}>
+                {contact.name}
+              </Text>
+              <Text style={styles.time}>{formatTime(updatedAt)}</Text>
+            </View>
+            <View style={styles.bottomRow}>
+              <Text
+                style={[styles.preview, hasUnread && styles.previewUnread]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {lastMessage?.content ?? ''}
+              </Text>
+              {hasUnread && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadCount > 99 ? '99+' : String(unreadCount)}
+                  </Text>
+                </View>
+              )}
+            </View>
           </View>
         </View>
-        <View style={styles.content}>
-          <View style={styles.topRow}>
-            <Text style={[styles.name, hasUnread && styles.nameUnread]} numberOfLines={1}>
-              {contact.name}
-            </Text>
-            <Text style={styles.time}>{formatTime(updatedAt)}</Text>
-          </View>
-          <View style={styles.bottomRow}>
-            <Text
-              style={[styles.preview, hasUnread && styles.previewUnread]}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {lastMessage?.content ?? ''}
-            </Text>
-            {hasUnread && (
-              <View style={styles.badge}>
-                <Text style={styles.badgeText}>
-                  {unreadCount > 99 ? '99+' : String(unreadCount)}
-                </Text>
-              </View>
-            )}
-          </View>
-        </View>
-      </View>
-      <View style={styles.separator} />
-    </Pressable>
+      </Pressable>
+    </GlassCard>
   );
 
   return (
@@ -148,8 +149,11 @@ export function ConversationCard({ conversation, onPress, onArchive, onPin }: Co
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
+    glassWrapper: {
+      marginBottom: spacing[2],
+    },
     pressable: {
-      backgroundColor: colors.background.secondary,
+      backgroundColor: 'transparent',
     },
     row: {
       flexDirection: 'row',
@@ -190,10 +194,5 @@ const createStyles = (colors: ThemeColors) =>
       justifyContent: 'center',
       paddingHorizontal: spacing[1],
     },
-    badgeText: { ...typography.caption2, color: '#FFFFFF', fontWeight: '700' },
-    separator: {
-      height: StyleSheet.hairlineWidth,
-      backgroundColor: colors.separator.transparent,
-      marginLeft: spacing[4] + 48 + spacing[3],
-    },
+    badgeText: { ...typography.caption2, color: colors.onPrimary, fontWeight: '700' },
   });

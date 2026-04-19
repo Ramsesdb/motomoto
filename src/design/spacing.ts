@@ -33,38 +33,60 @@ export const borderRadius = {
   full: 9999,
 } as const;
 
+/** Reusable shadow style shape (iOS + Android). */
+export interface ShadowStyle {
+  shadowColor: string;
+  shadowOffset: { width: number; height: number };
+  shadowOpacity: number;
+  shadowRadius: number;
+  elevation: number;
+}
+
+const zeroShadow: ShadowStyle = {
+  shadowColor: '#000000',
+  shadowOffset: { width: 0, height: 0 },
+  shadowOpacity: 0,
+  shadowRadius: 0,
+  elevation: 0,
+};
+
 /**
  * Cross-platform shadow presets.
  * shadowColor / shadowOffset / shadowOpacity / shadowRadius → iOS
  * elevation → Android
  */
 export const shadows = {
-  sm: {
+  /** @deprecated Use `shadows.modal` or `shadows.glow()` instead. Zeroed out — the new design language uses glow, not box shadows. */
+  sm: { ...zeroShadow },
+  /** @deprecated Use `shadows.modal` or `shadows.glow()` instead. Zeroed out — the new design language uses glow, not box shadows. */
+  md: { ...zeroShadow },
+  /** @deprecated Use `shadows.modal` or `shadows.glow()` instead. Zeroed out — the new design language uses glow, not box shadows. */
+  lg: { ...zeroShadow },
+  /** @deprecated Use `shadows.modal` or `shadows.glow()` instead. Zeroed out — the new design language uses glow, not box shadows. */
+  xl: { ...zeroShadow },
+
+  /** Elevated modal / bottom-sheet shadow. */
+  modal: {
     shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.18,
-    shadowRadius: 2,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.5,
+    shadowRadius: 50,
+    elevation: 24,
+  } as ShadowStyle,
+
+  /**
+   * Colored glow effect for tabs, buttons, and other interactive elements.
+   * @param color  - glow color (e.g. brand accent)
+   * @param radius - blur radius (default 20)
+   * @param opacity - shadow opacity 0-1 (default 0.45)
+   */
+  glow(color: string, radius = 20, opacity = 0.45): ShadowStyle {
+    return {
+      shadowColor: color,
+      shadowOffset: { width: 0, height: 0 },
+      shadowOpacity: opacity,
+      shadowRadius: radius,
+      elevation: 0,
+    };
   },
-  md: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.24,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  lg: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.32,
-    shadowRadius: 16,
-    elevation: 8,
-  },
-  xl: {
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.40,
-    shadowRadius: 32,
-    elevation: 16,
-  },
-} as const;
+};

@@ -35,6 +35,8 @@ export function ChannelBadge({ channel, size = 28 }: ChannelBadgeProps) {
           height: size,
           borderRadius: borderRadius.full,
           backgroundColor: `${brandColor}26`,
+          borderWidth: 2,
+          borderColor: brandColor,
         },
       ]}
     >

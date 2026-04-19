@@ -3,12 +3,13 @@ import {
   FlatList,
   KeyboardAvoidingView,
   Platform,
+  Pressable as RNPressable,
   StyleSheet,
   Text,
   View,
   type ListRenderItemInfo,
 } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useShallow } from 'zustand/react/shallow';
@@ -17,13 +18,29 @@ import { useInboxStore } from '@/store/useInboxStore';
 import { MessageBubble } from '@/components/messaging/MessageBubble';
 import { ChatInput } from '@/components/messaging/ChatInput';
 import { AISuggestionPill } from '@/components/ai/AISuggestionPill';
-import { Avatar } from '@/components/ui/Avatar';
-import { ChannelBadge } from '@/components/messaging/ChannelBadge';
-import { Pressable } from '@/components/ui/Pressable';
+import { AIInsightCard } from '@/components/ai/AIInsightCard';
+import { GlassHeader } from '@/components/navigation/GlassHeader';
 import { useColors } from '@/hooks/useColors';
 import { spacing, typography, borderRadius } from '@/design';
 import type { ThemeColors } from '@/design';
-import type { Message } from '@/types';
+import type { Message, ConversationStatus } from '@/types';
+
+// ─── Status pill label mapping ────────────────────────────────────────────────
+
+function statusLabel(status: ConversationStatus): string {
+  switch (status) {
+    case 'open':
+      return 'Abierto';
+    case 'resolved':
+      return 'Cerrado';
+    case 'pending':
+      return 'Pendiente';
+    case 'spam':
+      return 'Spam';
+  }
+}
+
+// ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function ChatScreen() {
   const router = useRouter();
@@ -53,6 +70,7 @@ export default function ChatScreen() {
 
   const [inputText, setInputText] = useState('');
   const [pillVisible, setPillVisible] = useState(true);
+  const [insightDismissed, setInsightDismissed] = useState(false);
   const listRef = useRef<FlatList<Message>>(null);
 
   useEffect(() => {
@@ -83,6 +101,9 @@ export default function ChatScreen() {
     return undefined;
   }, [threadMessages]);
 
+  const aiSummary = conversation?.aiContext?.summary;
+  const showInsight = aiSummary !== undefined && !insightDismissed;
+
   const handleSend = useCallback(
     async (text: string) => {
       if (id === undefined) return;
@@ -100,6 +121,34 @@ export default function ChatScreen() {
   function handleNavigateToClient() {
     router.push(`/inbox/${id ?? ''}/client` as never);
   }
+
+  // ── Header right accessory: phone + menu icons ──────────────────────────────
+
+  const rightAccessory = useMemo(
+    () => (
+      <View style={styles.headerRight}>
+        <RNPressable
+          onPress={() => {
+            /* phone action placeholder */
+          }}
+          style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: spacing[1] })}
+          hitSlop={8}
+        >
+          <MaterialCommunityIcons name="phone-outline" size={22} color={colors.onSurfaceVariant} />
+        </RNPressable>
+        <RNPressable
+          onPress={handleNavigateToClient}
+          style={({ pressed }) => ({ opacity: pressed ? 0.5 : 1, padding: spacing[1] })}
+          hitSlop={8}
+        >
+          <MaterialCommunityIcons name="dots-vertical" size={22} color={colors.onSurfaceVariant} />
+        </RNPressable>
+      </View>
+    ),
+    [colors, styles, handleNavigateToClient]
+  );
+
+  // ── Render message item ─────────────────────────────────────────────────────
 
   const renderItem = useCallback(
     ({ item, index }: ListRenderItemInfo<Message>) => {
@@ -122,59 +171,19 @@ export default function ChatScreen() {
 
   const keyExtractor = useCallback((item: Message) => item.id, []);
 
-  const channelType = conversation?.channelType;
-
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* ── Header ───────────────────────────────────────────────────────────── */}
-      <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <MaterialCommunityIcons
-            name="arrow-left"
-            size={24}
-            color={colors.text.primary}
-          />
-        </Pressable>
-
-        <Pressable
-          onPress={handleNavigateToClient}
-          style={styles.contactInfo}
-        >
-          <View style={styles.avatarContainer}>
-            <Avatar
-              name={conversation?.contact.name ?? '?'}
-              uri={conversation?.contact.avatarUrl}
-              size={38}
-            />
-            {channelType !== undefined && (
-              <View style={styles.channelBadgeOverlay}>
-                <ChannelBadge channel={channelType} size={18} />
-              </View>
-            )}
-          </View>
-          <View style={styles.contactText}>
-            <Text style={styles.contactName} numberOfLines={1}>
-              {conversation?.contact.name ?? ''}
-            </Text>
-            {channelType !== undefined && (
-              <Text style={styles.channelLabel} numberOfLines={1}>
-                {channelType.charAt(0).toUpperCase() + channelType.slice(1)}
-              </Text>
-            )}
-          </View>
-        </Pressable>
-
-        <Pressable
-          onPress={handleNavigateToClient}
-          style={styles.infoButton}
-        >
-          <MaterialCommunityIcons
-            name="information-outline"
-            size={22}
-            color={colors.text.secondary}
-          />
-        </Pressable>
-      </View>
+    <View style={styles.container}>
+      {/* ── Glass Header ──────────────────────────────────────────────────────── */}
+      <GlassHeader
+        title={conversation?.contact.name ?? ''}
+        statusPill={conversation !== undefined ? statusLabel(conversation.status) : undefined}
+        onBack={() => router.back()}
+        avatar={{
+          name: conversation?.contact.name ?? '?',
+          uri: conversation?.contact.avatarUrl,
+        }}
+        rightAccessory={rightAccessory}
+      />
 
       {/* ── Messages + Input ─────────────────────────────────────────────────── */}
       <KeyboardAvoidingView
@@ -188,9 +197,22 @@ export default function ChatScreen() {
           data={threadMessages}
           keyExtractor={keyExtractor}
           renderItem={renderItem}
+          inverted
           contentContainerStyle={styles.messageList}
           showsVerticalScrollIndicator={false}
           ListEmptyComponent={<EmptyChat />}
+          ListHeaderComponent={
+            showInsight ? (
+              <View style={styles.insightWrapper}>
+                <AIInsightCard
+                  variant="inline"
+                  title="Resumen IA"
+                  body={aiSummary}
+                  onDismiss={() => setInsightDismissed(true)}
+                />
+              </View>
+            ) : null
+          }
         />
 
         {/* AI Suggestion Pill */}
@@ -214,7 +236,7 @@ export default function ChatScreen() {
           />
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </View>
   );
 }
 
@@ -230,10 +252,10 @@ function isSameDay(a: string, b: string): boolean {
   );
 }
 
-function shouldShowDateSeparator(messages: Message[], index: number): boolean {
+function shouldShowDateSeparator(msgs: Message[], index: number): boolean {
   if (index === 0) return true;
-  const prev = messages[index - 1];
-  const curr = messages[index];
+  const prev = msgs[index - 1];
+  const curr = msgs[index];
   if (prev === undefined || curr === undefined) return false;
   return !isSameDay(prev.sentAt, curr.sentAt);
 }
@@ -258,7 +280,7 @@ function EmptyChat() {
   return (
     <View style={styles.emptyChat}>
       <View style={styles.emptyChatIcon}>
-        <MaterialCommunityIcons name="message-reply-text-outline" size={32} color={colors.text.tertiary} />
+        <MaterialCommunityIcons name="message-reply-text-outline" size={32} color={colors.onSurfaceVariant} />
       </View>
       <Text style={styles.emptyChatTitle}>Sin mensajes aún</Text>
       <Text style={styles.emptyChatText}>Envía el primer mensaje para iniciar la conversación</Text>
@@ -269,67 +291,23 @@ function EmptyChat() {
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.surfaceBackground,
   },
   flex: {
     flex: 1,
   },
 
-  /* Header */
-  header: {
+  /* Header right */
+  headerRight: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: spacing[2],
-    paddingVertical: spacing[2],
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.separator.transparent,
-    backgroundColor: colors.background.secondary,
-    gap: spacing[1],
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  contactInfo: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[3],
-  },
-  avatarContainer: {
-    position: 'relative',
-  },
-  channelBadgeOverlay: {
-    position: 'absolute',
-    bottom: -2,
-    right: -4,
-  },
-  contactText: {
-    flex: 1,
-    gap: 1,
-  },
-  contactName: {
-    ...typography.headline,
-    color: colors.text.primary,
-  },
-  channelLabel: {
-    ...typography.caption1,
-    color: colors.text.tertiary,
-  },
-  infoButton: {
-    width: 40,
-    height: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+    gap: spacing[2],
   },
 
   /* Messages */
   messageList: {
     paddingVertical: spacing[3],
     flexGrow: 1,
-    justifyContent: 'flex-end',
   },
   dateSeparator: {
     flexDirection: 'row',
@@ -341,19 +319,25 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   dateLine: {
     flex: 1,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.separator.transparent,
+    backgroundColor: colors.outlineVariant,
   },
   dateText: {
-    ...typography.caption1,
-    color: colors.text.tertiary,
+    ...typography.labelSmall,
+    color: colors.onSurfaceVariant,
     fontWeight: '600',
+  },
+
+  /* AI Insight inline */
+  insightWrapper: {
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[2],
   },
 
   /* AI Pill */
   pillWrapper: {
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.surfaceBackground,
   },
 
   /* Empty */
@@ -368,17 +352,17 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.surfaceContainerHigh,
     alignItems: 'center',
     justifyContent: 'center',
   },
   emptyChatTitle: {
-    ...typography.headline,
-    color: colors.text.primary,
+    ...typography.titleMedium,
+    color: colors.onSurface,
   },
   emptyChatText: {
-    ...typography.subhead,
-    color: colors.text.tertiary,
+    ...typography.bodyMedium,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
     paddingHorizontal: spacing[8],
   },

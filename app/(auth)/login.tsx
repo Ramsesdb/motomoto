@@ -6,11 +6,9 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, {
   FadeInDown,
@@ -20,8 +18,18 @@ import Animated, {
 import { useAuthStore } from '@/store/useAuthStore';
 import { Pressable } from '@/components/ui/Pressable';
 import { GlassCard } from '@/components/ui/GlassCard';
+import { AuraGlow } from '@/components/ui/AuraGlow';
+import { SunkenInput } from '@/components/ui/SunkenInput';
+import { GradientButton } from '@/components/ui/GradientButton';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius, type ThemeColors } from '@/design';
+import {
+  spacing,
+  typography,
+  fontFamily,
+  borderRadius,
+  shadows,
+  type ThemeColors,
+} from '@/design';
 
 export default function LoginScreen() {
   const colors = useColors();
@@ -46,7 +54,7 @@ export default function LoginScreen() {
     try {
       await signInWithEmail(email.trim(), password);
     } catch {
-      setError('No se pudo iniciar sesión. Verifica tus credenciales.');
+      setError('No se pudo iniciar sesion. Verifica tus credenciales.');
     } finally {
       setLoading(false);
     }
@@ -58,7 +66,7 @@ export default function LoginScreen() {
     try {
       await signIn();
     } catch {
-      setError('No se pudo iniciar sesión con Google. Intenta de nuevo.');
+      setError('No se pudo iniciar sesion con Google. Intenta de nuevo.');
     } finally {
       setLoadingGoogle(false);
     }
@@ -66,15 +74,23 @@ export default function LoginScreen() {
 
   const isLoading = loading || loadingGoogle;
 
+  const eyeToggle = (
+    <Pressable
+      onPress={() => setShowPassword((v) => !v)}
+      disabled={isLoading}
+    >
+      <MaterialCommunityIcons
+        name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+        size={20}
+        color={colors.onSurfaceVariant}
+      />
+    </Pressable>
+  );
+
   return (
     <View style={styles.root}>
-      {/* Background gradient accent */}
-      <LinearGradient
-        colors={[colors.accent.primary + '18', 'transparent']}
-        style={styles.bgGradient}
-        start={{ x: 0.5, y: 0 }}
-        end={{ x: 0.5, y: 0.5 }}
-      />
+      {/* Decorative aura background */}
+      <AuraGlow />
 
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView
@@ -89,152 +105,116 @@ export default function LoginScreen() {
             {/* -- Hero ---------------------------------------- */}
             <Animated.View entering={FadeInUp.duration(600).delay(100)} style={styles.hero}>
               <View style={styles.iconWrapper}>
-                <LinearGradient
-                  colors={[colors.accent.primary, colors.accent.primary + 'AA']}
-                  style={styles.iconGradient}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                >
-                  <MaterialCommunityIcons
-                    name="motorbike"
-                    size={48}
-                    color={colors.text.primary}
-                  />
-                </LinearGradient>
+                <MaterialCommunityIcons
+                  name="motorbike"
+                  size={64}
+                  color={colors.primary}
+                />
               </View>
-              <Text style={styles.appName}>Motomoto</Text>
-              <Text style={styles.tagline}>CRM & Mensajería Unificada</Text>
+              <Text style={styles.appName}>motomoto</Text>
+              <Text style={styles.tagline}>Precision CRM Systems</Text>
             </Animated.View>
 
             {/* -- Login Form ---------------------------------- */}
             <Animated.View entering={FadeInDown.duration(600).delay(300)}>
               <GlassCard style={styles.formCard}>
-                <Text style={styles.formTitle}>Iniciar sesión</Text>
+                <Text style={styles.welcomeText}>Bienvenido de nuevo</Text>
 
                 {error !== null && (
                   <View style={styles.errorContainer}>
                     <MaterialCommunityIcons
                       name="alert-circle-outline"
                       size={16}
-                      color={colors.accent.error}
+                      color={colors.error}
                     />
                     <Text style={styles.errorText}>{error}</Text>
                   </View>
                 )}
 
                 {/* Email input */}
-                <View style={styles.inputWrapper}>
-                  <MaterialCommunityIcons
-                    name="email-outline"
-                    size={20}
-                    color={colors.text.tertiary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={styles.input}
-                    placeholder="Correo electrónico"
-                    placeholderTextColor={colors.text.placeholder}
-                    value={email}
-                    onChangeText={setEmail}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    autoComplete="email"
-                    autoCorrect={false}
-                    editable={!isLoading}
-                  />
-                </View>
+                <SunkenInput
+                  value={email}
+                  onChangeText={setEmail}
+                  placeholder="Correo electronico"
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  autoComplete="email"
+                  editable={!isLoading}
+                  leftIcon="email-outline"
+                />
 
                 {/* Password input */}
-                <View style={styles.inputWrapper}>
-                  <MaterialCommunityIcons
-                    name="lock-outline"
-                    size={20}
-                    color={colors.text.tertiary}
-                    style={styles.inputIcon}
-                  />
-                  <TextInput
-                    style={[styles.input, styles.passwordInput]}
-                    placeholder="Contraseña"
-                    placeholderTextColor={colors.text.placeholder}
-                    value={password}
-                    onChangeText={setPassword}
-                    secureTextEntry={!showPassword}
-                    autoCapitalize="none"
-                    autoComplete="password"
-                    editable={!isLoading}
-                  />
-                  <Pressable
-                    onPress={() => setShowPassword((v) => !v)}
-                    style={styles.eyeButton}
-                    disabled={isLoading}
-                  >
-                    <MaterialCommunityIcons
-                      name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-                      size={20}
-                      color={colors.text.tertiary}
-                    />
-                  </Pressable>
-                </View>
+                <SunkenInput
+                  value={password}
+                  onChangeText={setPassword}
+                  placeholder="Contrasena"
+                  secureTextEntry={!showPassword}
+                  autoCapitalize="none"
+                  autoComplete="password"
+                  editable={!isLoading}
+                  leftIcon="lock-outline"
+                  rightAccessory={eyeToggle}
+                />
+
+                {/* Forgot password link */}
+                <Pressable onPress={() => {}} style={styles.forgotButton}>
+                  <Text style={styles.forgotText}>Olvido su contrasena?</Text>
+                </Pressable>
 
                 {/* Sign in button */}
-                <Pressable
+                <GradientButton
+                  label="Iniciar sesion"
                   onPress={handleEmailSignIn}
-                  style={[
-                    styles.primaryButton,
-                    !canSubmit && styles.primaryButtonDisabled,
-                  ]}
                   disabled={!canSubmit || isLoading}
+                  loading={loading}
+                  fullWidth
+                />
+
+                {/* Google Workspace button */}
+                <Pressable
+                  onPress={handleGoogleSignIn}
+                  style={styles.googleButton}
+                  disabled={isLoading}
                 >
-                  {loading ? (
-                    <ActivityIndicator color={colors.text.primary} size="small" />
+                  {loadingGoogle ? (
+                    <ActivityIndicator color={colors.onSurface} size="small" />
                   ) : (
-                    <Text style={styles.primaryButtonLabel}>Iniciar sesión</Text>
+                    <>
+                      <MaterialCommunityIcons
+                        name="google"
+                        size={22}
+                        color={colors.onSurface}
+                      />
+                      <Text style={styles.googleButtonLabel}>Google Workspace</Text>
+                    </>
                   )}
                 </Pressable>
 
-                {/* Forgot password */}
-                <Pressable onPress={() => {}} style={styles.forgotButton}>
-                  <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-                </Pressable>
+                {/* Biometric row */}
+                <View style={styles.biometricRow}>
+                  <Pressable onPress={() => {}} style={styles.biometricIcon}>
+                    <MaterialCommunityIcons
+                      name="fingerprint"
+                      size={28}
+                      color={colors.primary}
+                    />
+                  </Pressable>
+                  <Pressable onPress={() => {}} style={styles.biometricIcon}>
+                    <MaterialCommunityIcons
+                      name="face-recognition"
+                      size={28}
+                      color={colors.primary}
+                    />
+                  </Pressable>
+                </View>
               </GlassCard>
             </Animated.View>
 
-            {/* -- Divider ------------------------------------- */}
-            <Animated.View entering={FadeInDown.duration(600).delay(450)} style={styles.dividerRow}>
-              <View style={styles.dividerLine} />
-              <Text style={styles.dividerText}>o continúa con</Text>
-              <View style={styles.dividerLine} />
-            </Animated.View>
-
-            {/* -- Social Sign-In ------------------------------ */}
-            <Animated.View entering={FadeInDown.duration(600).delay(550)}>
-              <Pressable
-                onPress={handleGoogleSignIn}
-                style={styles.googleButton}
-                disabled={isLoading}
-              >
-                {loadingGoogle ? (
-                  <ActivityIndicator color={colors.text.primary} size="small" />
-                ) : (
-                  <>
-                    <MaterialCommunityIcons
-                      name="google"
-                      size={22}
-                      color={colors.text.primary}
-                    />
-                    <Text style={styles.googleButtonLabel}>Google</Text>
-                  </>
-                )}
-              </Pressable>
-            </Animated.View>
-
-            {/* -- Legal --------------------------------------- */}
-            <Animated.View entering={FadeInDown.duration(600).delay(650)}>
-              <Text style={styles.legal}>
-                Al continuar aceptas los{' '}
-                <Text style={styles.legalLink}>Términos de Servicio</Text>
-                {' '}y la{' '}
-                <Text style={styles.legalLink}>Política de Privacidad</Text>.
+            {/* -- Bottom link --------------------------------- */}
+            <Animated.View entering={FadeInDown.duration(600).delay(500)}>
+              <Text style={styles.bottomText}>
+                No tienes una cuenta?{' '}
+                <Text style={styles.bottomLink}>Solicitar acceso</Text>
               </Text>
             </Animated.View>
           </ScrollView>
@@ -247,14 +227,7 @@ export default function LoginScreen() {
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   root: {
     flex: 1,
-    backgroundColor: colors.background.primary,
-  },
-  bgGradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: 320,
+    backgroundColor: colors.surfaceBackground,
   },
   safeArea: {
     flex: 1,
@@ -276,24 +249,20 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   iconWrapper: {
     marginBottom: spacing[4],
-  },
-  iconGradient: {
-    width: 88,
-    height: 88,
-    borderRadius: borderRadius['2xl'],
-    alignItems: 'center',
-    justifyContent: 'center',
+    ...(Platform.OS === 'ios' ? shadows.glow(colors.primary, 24, 0.6) : undefined),
   },
   appName: {
     fontSize: 36,
     fontWeight: '800',
-    letterSpacing: 0.5,
-    color: colors.text.primary,
+    fontFamily: fontFamily.displayExtraBold,
+    letterSpacing: -0.02 * 36,
+    color: colors.onSurface,
     marginBottom: spacing[1],
   },
   tagline: {
-    ...typography.callout,
-    color: colors.text.secondary,
+    ...typography.subhead,
+    fontFamily: fontFamily.bodyRegular,
+    color: colors.onSurfaceVariant,
   },
 
   /* Form card */
@@ -301,10 +270,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     padding: spacing[6],
     gap: spacing[4],
   },
-  formTitle: {
-    ...typography.title3,
-    fontWeight: '600',
-    color: colors.text.primary,
+  welcomeText: {
+    ...typography.headline,
+    fontFamily: fontFamily.bodyRegular,
+    color: colors.onSurface,
     marginBottom: spacing[1],
   },
 
@@ -313,88 +282,24 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
-    backgroundColor: colors.accent.errorMuted,
+    backgroundColor: colors.errorContainer,
     borderRadius: borderRadius.md,
     paddingVertical: spacing[2],
     paddingHorizontal: spacing[3],
   },
   errorText: {
-    ...typography.footnote,
-    color: colors.accent.error,
+    ...typography.bodySmall,
+    color: colors.error,
     flex: 1,
-  },
-
-  /* Inputs */
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: colors.background.secondary,
-    borderRadius: borderRadius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator.transparent,
-    minHeight: 52,
-  },
-  inputIcon: {
-    marginLeft: spacing[4],
-  },
-  input: {
-    flex: 1,
-    ...typography.body,
-    color: colors.text.primary,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[3],
-  },
-  passwordInput: {
-    paddingRight: spacing[12],
-  },
-  eyeButton: {
-    position: 'absolute',
-    right: spacing[3],
-    padding: spacing[2],
-  },
-
-  /* Primary button */
-  primaryButton: {
-    backgroundColor: colors.accent.primary,
-    borderRadius: borderRadius.md,
-    paddingVertical: spacing[4],
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 52,
-    marginTop: spacing[1],
-  },
-  primaryButtonDisabled: {
-    opacity: 0.45,
-  },
-  primaryButtonLabel: {
-    ...typography.headline,
-    color: colors.text.primary,
   },
 
   /* Forgot password */
   forgotButton: {
-    alignSelf: 'center',
+    alignSelf: 'flex-end',
   },
   forgotText: {
-    ...typography.footnote,
-    color: colors.text.link,
-  },
-
-  /* Divider */
-  dividerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: spacing[6],
-    gap: spacing[3],
-  },
-  dividerLine: {
-    flex: 1,
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: colors.separator.transparent,
-  },
-  dividerText: {
-    ...typography.caption1,
-    color: colors.text.tertiary,
+    ...typography.labelMedium,
+    color: colors.primary,
   },
 
   /* Google button */
@@ -403,27 +308,40 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: spacing[3],
-    backgroundColor: colors.background.tertiary,
-    borderRadius: borderRadius.md,
+    backgroundColor: colors.glass.background,
+    borderRadius: borderRadius.sm,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator.transparent,
+    borderColor: colors.outlineVariant,
     paddingVertical: spacing[4],
     minHeight: 52,
   },
   googleButtonLabel: {
-    ...typography.headline,
-    color: colors.text.primary,
+    ...typography.labelLarge,
+    fontFamily: fontFamily.bodySemiBold,
+    color: colors.onSurface,
   },
 
-  /* Legal */
-  legal: {
-    ...typography.caption1,
-    color: colors.text.tertiary,
+  /* Biometric row */
+  biometricRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[6],
+    marginTop: spacing[1],
+  },
+  biometricIcon: {
+    padding: spacing[2],
+  },
+
+  /* Bottom */
+  bottomText: {
+    ...typography.bodySmall,
+    color: colors.onSurfaceVariant,
     textAlign: 'center',
-    lineHeight: 18,
     marginTop: spacing[6],
   },
-  legalLink: {
-    color: colors.text.link,
+  bottomLink: {
+    color: colors.primary,
+    fontWeight: '600',
   },
 });

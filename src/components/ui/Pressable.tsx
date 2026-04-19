@@ -8,12 +8,8 @@ import {
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withSpring,
+  withTiming,
 } from 'react-native-reanimated';
-
-const SPRING_CONFIG = { damping: 15, stiffness: 400 } as const;
-const SCALE_PRESSED = 0.96;
-const SCALE_RESTING = 1;
 
 type AnimatedPressableProps = Omit<PressableProps, 'style'> & {
   children: React.ReactNode;
@@ -22,8 +18,8 @@ type AnimatedPressableProps = Omit<PressableProps, 'style'> & {
 };
 
 /**
- * Drop-in replacement for RN `Pressable` with a Reanimated v4 spring scale
- * feedback on press. Uses `withSpring` — never the legacy `Animated` API.
+ * Drop-in replacement for RN `Pressable` with a Reanimated v4 opacity fade
+ * feedback on press. Uses `withTiming` — never the legacy `Animated` API.
  *
  * The `style` prop is applied to the inner `Animated.View` so that layout
  * properties (flexDirection, gap, padding, etc.) correctly affect children.
@@ -35,20 +31,20 @@ export function Pressable({
   style,
   ...rest
 }: AnimatedPressableProps) {
-  const scale = useSharedValue(SCALE_RESTING);
+  const opacity = useSharedValue(1);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
   }));
 
   return (
     <RNPressable
       onPressIn={(e) => {
-        scale.value = withSpring(SCALE_PRESSED, SPRING_CONFIG);
+        opacity.value = withTiming(0.7, { duration: 100 });
         onPressIn?.(e);
       }}
       onPressOut={(e) => {
-        scale.value = withSpring(SCALE_RESTING, SPRING_CONFIG);
+        opacity.value = withTiming(1, { duration: 150 });
         onPressOut?.(e);
       }}
       {...rest}

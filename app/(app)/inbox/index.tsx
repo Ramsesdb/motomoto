@@ -17,40 +17,25 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { useInboxStore } from '@/store/useInboxStore';
 import { Pressable } from '@/components/ui/Pressable';
 import { ConversationCard } from '@/components/messaging/ConversationCard';
+import { FilterTab } from '@/components/ui/FilterTab';
 import { SkeletonConversationList } from '@/components/ui/Skeleton';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius } from '@/design';
+import { spacing, typography, borderRadius, fontFamily } from '@/design';
 import type { ThemeColors } from '@/design';
-import type { ChannelType, Conversation, ConversationStatus } from '@/types';
+import type { Conversation, ConversationStatus } from '@/types';
 
-// ─── Filter chip data ─────────────────────────────────────────────────────────
+// ─── Filter data ──────────────────────────────────────────────────────────────
 
-interface StatusChip {
+interface StatusFilter {
   label: string;
   value: ConversationStatus | 'all';
 }
 
-const STATUS_CHIPS: StatusChip[] = [
+const STATUS_FILTERS: StatusFilter[] = [
   { label: 'Todos', value: 'all' },
   { label: 'Abiertos', value: 'open' },
   { label: 'Pendientes', value: 'pending' },
   { label: 'Resueltos', value: 'resolved' },
-];
-
-interface ChannelChip {
-  label: string;
-  value: ChannelType | 'all';
-  icon?: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
-  tintKey?: keyof ThemeColors['channel'];
-}
-
-const CHANNEL_CHIPS: ChannelChip[] = [
-  { label: 'Todos', value: 'all' },
-  { label: 'WhatsApp', value: 'whatsapp', icon: 'whatsapp', tintKey: 'whatsapp' },
-  { label: 'Instagram', value: 'instagram', icon: 'instagram', tintKey: 'instagram' },
-  { label: 'Facebook', value: 'facebook', icon: 'facebook', tintKey: 'facebook' },
-  { label: 'SMS', value: 'sms', icon: 'message-text-outline', tintKey: 'sms' },
-  { label: 'Email', value: 'email', icon: 'email-outline', tintKey: 'email' },
 ];
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
@@ -84,11 +69,12 @@ export default function InboxScreen() {
     setRefreshing(false);
   }, [loadConversations]);
 
+  const activeStatus = filters.status ?? 'all';
+
   const filtered = useMemo<Conversation[]>(() => {
     const q = searchQuery.trim().toLowerCase();
     return conversations.filter((c) => {
       if (filters.status !== undefined && c.status !== filters.status) return false;
-      if (filters.channelType !== undefined && c.channelType !== filters.channelType) return false;
       if (q.length > 0) {
         const nameMatch = c.contact.name.toLowerCase().includes(q);
         const msgMatch = c.lastMessage?.content.toLowerCase().includes(q) ?? false;
@@ -102,23 +88,21 @@ export default function InboxScreen() {
     router.push(`/inbox/${conversationId}` as never);
   }
 
-  const activeStatus = filters.status ?? 'all';
-  const activeChannel = filters.channelType ?? 'all';
+  function handleFilterPress(value: ConversationStatus | 'all') {
+    setFilters({ status: value === 'all' ? undefined : value });
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       {/* ── Header ───────────────────────────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.duration(200).delay(50)} style={styles.header}>
         <Text style={styles.title}>Mensajes</Text>
-        <View style={styles.countBadge}>
-          <Text style={styles.countText}>{conversations.length}</Text>
-        </View>
         <View style={styles.headerSpacer} />
         <Pressable onPress={() => setShowSearch((v) => !v)} style={styles.searchToggle}>
           <MaterialCommunityIcons
             name={showSearch ? 'close' : 'magnify'}
             size={22}
-            color={colors.text.secondary}
+            color={colors.onSurfaceVariant}
           />
         </Pressable>
       </Animated.View>
@@ -126,7 +110,7 @@ export default function InboxScreen() {
       {/* ── Search bar ────────────────────────────────────────────────────── */}
       {showSearch && (
         <Animated.View entering={FadeInDown.duration(250)} style={styles.searchBar}>
-          <MaterialCommunityIcons name="magnify" size={18} color={colors.text.tertiary} />
+          <MaterialCommunityIcons name="magnify" size={18} color={colors.onSurfaceVariant} />
           <TextInput
             style={styles.searchInput}
             placeholder="Buscar por nombre o mensaje..."
@@ -139,74 +123,27 @@ export default function InboxScreen() {
           />
           {searchQuery.length > 0 && (
             <Pressable onPress={() => setSearchQuery('')}>
-              <MaterialCommunityIcons name="close-circle" size={16} color={colors.text.tertiary} />
+              <MaterialCommunityIcons name="close-circle" size={16} color={colors.onSurfaceVariant} />
             </Pressable>
           )}
         </Animated.View>
       )}
 
-      {/* ── Filters ────────────────────────────────────────────────────────── */}
+      {/* ── Filter tabs ──────────────────────────────────────────────────── */}
       <Animated.View entering={FadeInDown.duration(200).delay(120)}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterRow}
         >
-          {STATUS_CHIPS.map((chip) => {
-            const active = chip.value === activeStatus;
-            return (
-              <Pressable
-                key={chip.value}
-                onPress={() =>
-                  setFilters({
-                    status: chip.value === 'all' ? undefined : chip.value,
-                  })
-                }
-                style={[styles.chip, active && styles.chipActive]}
-              >
-                <Text style={[styles.chipLabel, active && styles.chipLabelActive]}>
-                  {chip.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-
-          <View style={styles.chipDivider} />
-
-          {CHANNEL_CHIPS.map((chip) => {
-            const active = chip.value === activeChannel;
-            const tint = chip.tintKey !== undefined ? colors.channel[chip.tintKey] : undefined;
-            return (
-              <Pressable
-                key={chip.value}
-                onPress={() =>
-                  setFilters({
-                    channelType: chip.value === 'all' ? undefined : chip.value,
-                  })
-                }
-                style={[
-                  styles.chip,
-                  active && styles.chipActive,
-                  active && tint !== undefined && { borderColor: tint, backgroundColor: tint + '18' },
-                ]}
-              >
-                {chip.icon !== undefined && (
-                  <MaterialCommunityIcons
-                    name={chip.icon}
-                    size={14}
-                    color={active && tint !== undefined ? tint : colors.text.secondary}
-                  />
-                )}
-                <Text style={[
-                  styles.chipLabel,
-                  active && styles.chipLabelActive,
-                  active && tint !== undefined && { color: tint },
-                ]}>
-                  {chip.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {STATUS_FILTERS.map((filter) => (
+            <FilterTab
+              key={filter.value}
+              label={filter.label}
+              active={filter.value === activeStatus}
+              onPress={() => handleFilterPress(filter.value)}
+            />
+          ))}
         </ScrollView>
       </Animated.View>
 
@@ -214,27 +151,27 @@ export default function InboxScreen() {
       {isLoading ? (
         <SkeletonConversationList />
       ) : (
-      <FlatList
-        data={filtered}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <ConversationCard
-            conversation={item}
-            onPress={handleConversationPress}
-          />
-        )}
-        ListEmptyComponent={<EmptyState />}
-        contentContainerStyle={styles.listContent}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={colors.accent.primary}
-            colors={[colors.accent.primary]}
-          />
-        }
-      />
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <ConversationCard
+              conversation={item}
+              onPress={handleConversationPress}
+            />
+          )}
+          ListEmptyComponent={<EmptyState />}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={colors.accent.primary}
+              colors={[colors.accent.primary]}
+            />
+          }
+        />
       )}
     </SafeAreaView>
   );
@@ -248,12 +185,12 @@ function EmptyState() {
   return (
     <View style={styles.empty}>
       <View style={styles.emptyIconWrapper}>
-        <MaterialCommunityIcons name="message-text-clock-outline" size={40} color={colors.text.tertiary} />
+        <MaterialCommunityIcons name="message-text-clock-outline" size={40} color={colors.onSurfaceVariant} />
       </View>
       <Text style={styles.emptyTitle}>Sin conversaciones</Text>
       <Text style={styles.emptySubtitle}>No hay conversaciones con estos filtros.</Text>
       <Pressable onPress={clearFilters} style={styles.emptyCta}>
-        <MaterialCommunityIcons name="filter-remove-outline" size={16} color={colors.accent.primary} />
+        <MaterialCommunityIcons name="filter-remove-outline" size={16} color={colors.primary} />
         <Text style={styles.emptyCtaText}>Limpiar filtros</Text>
       </Pressable>
     </View>
@@ -265,42 +202,28 @@ function EmptyState() {
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.background.primary,
+    backgroundColor: colors.surfaceBackground,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing[3],
     paddingHorizontal: spacing[4],
     paddingTop: spacing[4],
     paddingBottom: spacing[2],
   },
   title: {
-    ...typography.largeTitle,
-    color: colors.text.primary,
-    fontWeight: '700',
-  },
-  countBadge: {
-    backgroundColor: colors.accent.primaryMuted,
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing[2],
-    paddingVertical: 2,
-    minWidth: 28,
-    alignItems: 'center',
-  },
-  countText: {
-    ...typography.caption1,
-    color: colors.accent.primary,
-    fontWeight: '700',
+    ...typography.headlineLarge,
+    fontFamily: fontFamily.displayBold,
+    color: colors.onSurface,
   },
   headerSpacer: {
     flex: 1,
   },
   searchToggle: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.surfaceContainerHigh,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -312,15 +235,16 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     marginBottom: spacing[2],
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.surfaceContainerHigh,
     borderRadius: borderRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator.transparent,
+    borderColor: colors.outlineVariant,
   },
   searchInput: {
     flex: 1,
-    ...typography.subhead,
-    color: colors.text.primary,
+    ...typography.bodyMedium,
+    fontFamily: fontFamily.bodyRegular,
+    color: colors.onSurface,
     paddingVertical: spacing[1],
   },
   filterRow: {
@@ -330,36 +254,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingBottom: spacing[3],
     gap: spacing[2],
     alignItems: 'center',
-  },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[1],
-    borderRadius: borderRadius.full,
-    paddingHorizontal: spacing[3],
-    paddingVertical: spacing[2],
-    backgroundColor: colors.background.tertiary,
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  chipActive: {
-    backgroundColor: colors.accent.primaryMuted,
-    borderColor: colors.accent.primary,
-  },
-  chipLabel: {
-    ...typography.caption1,
-    fontWeight: '500',
-    color: colors.text.secondary,
-  },
-  chipLabelActive: {
-    color: colors.accent.primary,
-    fontWeight: '600',
-  },
-  chipDivider: {
-    width: 1,
-    height: 20,
-    backgroundColor: colors.separator.opaque,
-    marginHorizontal: spacing[1],
   },
   listContent: {
     paddingBottom: spacing[24],
@@ -373,18 +267,20 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.surfaceContainerHigh,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing[1],
   },
   emptyTitle: {
-    ...typography.headline,
-    color: colors.text.primary,
+    ...typography.titleMedium,
+    fontFamily: fontFamily.displaySemiBold,
+    color: colors.onSurface,
   },
   emptySubtitle: {
-    ...typography.subhead,
-    color: colors.text.tertiary,
+    ...typography.bodyMedium,
+    fontFamily: fontFamily.bodyRegular,
+    color: colors.onSurfaceVariant,
   },
   emptyCta: {
     flexDirection: 'row',
@@ -394,11 +290,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[2],
     borderRadius: borderRadius.full,
-    backgroundColor: colors.accent.primaryMuted,
+    backgroundColor: colors.primaryContainer,
   },
   emptyCtaText: {
-    ...typography.subhead,
-    fontWeight: '600',
-    color: colors.accent.primary,
+    ...typography.labelLarge,
+    fontFamily: fontFamily.bodySemiBold,
+    color: colors.primary,
   },
 });

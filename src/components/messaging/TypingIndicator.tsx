@@ -70,7 +70,7 @@ const createStyles = (colors: ThemeColors) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing[1],
-      backgroundColor: colors.background.tertiary,
+      backgroundColor: colors.surfaceContainer,
       borderRadius: borderRadius.xl,
       paddingHorizontal: spacing[4],
       paddingVertical: spacing[3],
@@ -79,6 +79,6 @@ const createStyles = (colors: ThemeColors) =>
       width: DOT_SIZE,
       height: DOT_SIZE,
       borderRadius: DOT_SIZE / 2,
-      backgroundColor: colors.text.tertiary,
+      backgroundColor: colors.onSurfaceVariant,
     },
   });

@@ -21,7 +21,7 @@ export function AISuggestionPill({ suggestion, onPress, onDismiss }: AISuggestio
   return (
     <Pressable onPress={() => onPress(suggestion)} style={styles.outer}>
       <LinearGradient
-        colors={[colors.accent.purple + '20', colors.accent.purple + '0A']}
+        colors={[colors.secondary + '1A', colors.secondary + '0A']}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={styles.pill}
@@ -50,8 +50,6 @@ const createStyles = (colors: ThemeColors) =>
       flexDirection: 'row',
       alignItems: 'center',
       borderRadius: borderRadius.lg,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.accent.purple + '40',
       paddingHorizontal: spacing[3],
       paddingVertical: spacing[3],
       gap: spacing[3],
@@ -60,7 +58,7 @@ const createStyles = (colors: ThemeColors) =>
       width: 28,
       height: 28,
       borderRadius: borderRadius.full,
-      backgroundColor: colors.accent.purpleMuted,
+      backgroundColor: colors.secondaryContainer + '33',
       alignItems: 'center',
       justifyContent: 'center',
       flexShrink: 0,

@@ -70,12 +70,12 @@ const createStyles = (colors: ThemeColors) =>
       position: 'absolute',
     },
     initialsContainer: {
-      backgroundColor: colors.background.elevated,
+      backgroundColor: colors.surfaceContainerHigh,
       alignItems: 'center',
       justifyContent: 'center',
     },
     initials: {
-      color: colors.text.secondary,
+      color: colors.onSurfaceVariant,
       fontWeight: typography.headline.fontWeight,
     },
     dot: {

@@ -43,7 +43,7 @@ export function Skeleton({ width, height = 16, borderRadius = br.md, style }: Sk
           width,
           height,
           borderRadius,
-          backgroundColor: colors.background.elevated,
+          backgroundColor: colors.surfaceContainerHigh,
         },
         animatedStyle,
         style,
@@ -154,9 +154,7 @@ const createCardStyles = (colors: ThemeColors) => StyleSheet.create({
     gap: spacing[2],
     minHeight: 120,
     borderRadius: br.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator.transparent,
-    backgroundColor: colors.background.secondary,
+    backgroundColor: colors.surfaceContainerHigh,
   },
 });
 
@@ -186,10 +184,8 @@ const createTeamRowStyles = (colors: ThemeColors) => StyleSheet.create({
     gap: spacing[3],
     paddingVertical: spacing[3],
     paddingHorizontal: spacing[4],
-    backgroundColor: colors.background.tertiary,
+    backgroundColor: colors.surfaceContainerHigh,
     borderRadius: br.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator.transparent,
   },
   content: {
     flex: 1,

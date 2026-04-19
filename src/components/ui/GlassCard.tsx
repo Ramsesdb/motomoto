@@ -10,11 +10,11 @@ import type { ThemeColors } from '@/design';
 interface GlassCardProps {
   children: React.ReactNode;
   style?: StyleProp<ViewStyle>;
-  /** Blur intensity 0–100. iOS only — Android falls back to solid surface. Default 60. */
+  /** Blur intensity 0–100. iOS only — Android falls back to solid surface. Default 30. */
   intensity?: number;
 }
 
-export function GlassCard({ children, style, intensity = 60 }: GlassCardProps) {
+export function GlassCard({ children, style, intensity = 30 }: GlassCardProps) {
   const colors = useColors();
   const isDark = useIsDark();
   const styles = useMemo(() => createStyles(colors), [colors]);
@@ -26,6 +26,7 @@ export function GlassCard({ children, style, intensity = 60 }: GlassCardProps) {
           <BlurView intensity={intensity} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
           <View style={styles.overlay} pointerEvents="none" />
           <View style={styles.highlight} pointerEvents="none" />
+          <View style={styles.leftHighlight} pointerEvents="none" />
         </>
       )}
       {children}
@@ -36,13 +37,11 @@ export function GlassCard({ children, style, intensity = 60 }: GlassCardProps) {
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
-      borderRadius: borderRadius.lg,
+      borderRadius: borderRadius.sm,
       overflow: 'hidden',
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.glass.border,
     },
     androidBg: {
-      backgroundColor: colors.background.tertiary,
+      backgroundColor: colors.surfaceContainer,
     },
     overlay: {
       ...StyleSheet.absoluteFillObject,
@@ -53,7 +52,15 @@ const createStyles = (colors: ThemeColors) =>
       top: 0,
       left: 0,
       right: 0,
-      height: 1,
+      height: 0.5,
+      backgroundColor: colors.glass.highlight,
+    },
+    leftHighlight: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      width: 0.5,
+      height: '100%',
       backgroundColor: colors.glass.highlight,
     },
   });

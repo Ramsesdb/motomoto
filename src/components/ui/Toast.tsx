@@ -1,14 +1,16 @@
 import React, { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 import Animated, {
   FadeInUp,
   FadeOutUp,
   LinearTransition,
 } from 'react-native-reanimated';
+import { BlurView } from 'expo-blur';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors } from '@/hooks/useColors';
+import { useIsDark } from '@/hooks/useColors';
 import { borderRadius, spacing, typography } from '@/design';
 import type { ThemeColors } from '@/design';
 
@@ -56,15 +58,6 @@ function getVariantColor(variant: ToastVariant, colors: ThemeColors): string {
   }
 }
 
-function getVariantBg(variant: ToastVariant, colors: ThemeColors): string {
-  switch (variant) {
-    case 'success': return colors.accent.successMuted;
-    case 'error': return colors.accent.errorMuted;
-    case 'info': return colors.accent.infoMuted;
-    case 'warning': return colors.accent.warningMuted;
-  }
-}
-
 // ─── Provider ─────────────────────────────────────────────────────────────────
 
 const TOAST_DURATION = 3000;
@@ -74,6 +67,8 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const insets = useSafeAreaInsets();
   const colors = useColors();
+  const isDark = useIsDark();
+  const dynamicStyles = useMemo(() => createDynamicStyles(colors), [colors]);
   const timers = useRef<Map<number, ReturnType<typeof setTimeout>>>(new Map());
 
   const show = useCallback((message: string, variant: ToastVariant = 'info') => {
@@ -98,20 +93,19 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             entering={FadeInUp.duration(300).springify()}
             exiting={FadeOutUp.duration(200)}
             layout={LinearTransition.springify()}
-            style={[
-              styles.toast,
-              {
-                backgroundColor: getVariantBg(toast.variant, colors),
-                borderColor: getVariantColor(toast.variant, colors) + '40',
-              },
-            ]}
+            style={styles.toast}
           >
+            {Platform.OS !== 'android' && (
+              <BlurView intensity={40} tint={isDark ? 'dark' : 'light'} style={StyleSheet.absoluteFill} />
+            )}
+            <View style={[StyleSheet.absoluteFill, dynamicStyles.overlay]} pointerEvents="none" />
+            <View style={[dynamicStyles.accentBar, { backgroundColor: getVariantColor(toast.variant, colors) }]} pointerEvents="none" />
             <MaterialCommunityIcons
               name={VARIANT_ICON[toast.variant]}
               size={18}
               color={getVariantColor(toast.variant, colors)}
             />
-            <Text style={[styles.message, { color: colors.text.primary }]} numberOfLines={2}>
+            <Text style={[styles.message, { color: colors.onSurface }]} numberOfLines={2}>
               {toast.message}
             </Text>
           </Animated.View>
@@ -139,7 +133,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
     borderRadius: borderRadius.lg,
-    borderWidth: 1,
+    overflow: 'hidden' as const,
     width: '100%',
   },
   message: {
@@ -148,3 +142,19 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 });
+
+const createDynamicStyles = (colors: ThemeColors) =>
+  StyleSheet.create({
+    overlay: {
+      backgroundColor: colors.surfaceContainer + 'B3', // 70% opacity
+    },
+    accentBar: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 3,
+      borderTopLeftRadius: borderRadius.lg,
+      borderBottomLeftRadius: borderRadius.lg,
+    },
+  });

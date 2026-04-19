@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import {
+  Platform,
   StyleSheet,
   TextInput,
   View,
   type TextInputProps,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors } from '@/hooks/useColors';
@@ -49,10 +51,10 @@ export function ChatInput({
 
   const canSend = currentText.trim().length > 0;
 
-  return (
-    <View style={styles.container}>
+  const inner = (
+    <View style={styles.innerRow}>
       <Pressable onPress={onAttachment} style={styles.iconButton}>
-        <MaterialCommunityIcons name="plus-circle-outline" size={24} color={colors.text.secondary} />
+        <MaterialCommunityIcons name="plus-circle-outline" size={24} color={colors.onSurfaceVariant} />
       </Pressable>
       <View style={styles.inputWrapper}>
         <TextInput
@@ -60,14 +62,14 @@ export function ChatInput({
           value={currentText}
           onChangeText={handleChangeText}
           placeholder={placeholder}
-          placeholderTextColor={colors.text.placeholder}
+          placeholderTextColor={colors.onSurfaceVariant}
           multiline
           returnKeyType="default"
           blurOnSubmit={false}
         />
         {onAISuggestion !== undefined && (
           <Pressable onPress={onAISuggestion} style={styles.aiButton}>
-            <MaterialCommunityIcons name="robot-outline" size={18} color={colors.accent.purple} />
+            <MaterialCommunityIcons name="robot-outline" size={18} color={colors.secondary} />
           </Pressable>
         )}
       </View>
@@ -79,9 +81,23 @@ export function ChatInput({
         <MaterialCommunityIcons
           name="send"
           size={18}
-          color={canSend ? '#FFFFFF' : colors.text.tertiary}
+          color={canSend ? colors.onPrimary : colors.onSurfaceVariant}
         />
       </Pressable>
+    </View>
+  );
+
+  if (Platform.OS === 'ios') {
+    return (
+      <BlurView intensity={40} tint="dark" style={styles.container}>
+        {inner}
+      </BlurView>
+    );
+  }
+
+  return (
+    <View style={[styles.container, styles.containerAndroid]}>
+      {inner}
     </View>
   );
 }
@@ -89,13 +105,16 @@ export function ChatInput({
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
     container: {
+      overflow: 'hidden',
+    },
+    containerAndroid: {
+      backgroundColor: colors.surfaceContainerLow,
+    },
+    innerRow: {
       flexDirection: 'row',
       alignItems: 'flex-end',
       paddingHorizontal: spacing[3],
       paddingVertical: spacing[2],
-      backgroundColor: colors.background.secondary,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: colors.separator.transparent,
       gap: spacing[2],
     },
     iconButton: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
@@ -103,22 +122,28 @@ const createStyles = (colors: ThemeColors) =>
       flex: 1,
       flexDirection: 'row',
       alignItems: 'flex-end',
-      backgroundColor: colors.background.tertiary,
+      backgroundColor: colors.surfaceContainerLowest,
       borderRadius: borderRadius.xl,
-      borderWidth: StyleSheet.hairlineWidth,
-      borderColor: colors.separator.transparent,
       paddingLeft: spacing[3],
       paddingRight: spacing[1],
       paddingVertical: spacing[2],
       minHeight: 40,
       maxHeight: 120,
+      ...(Platform.OS === 'ios'
+        ? {
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: 1 },
+            shadowOpacity: 0.25,
+            shadowRadius: 2,
+          }
+        : {}),
     },
-    input: { flex: 1, ...typography.body, color: colors.text.primary, padding: 0, margin: 0 },
+    input: { flex: 1, ...typography.body, color: colors.onSurface, padding: 0, margin: 0 },
     aiButton: {
       width: 32,
       height: 32,
       borderRadius: borderRadius.full,
-      backgroundColor: colors.accent.purpleMuted,
+      backgroundColor: colors.secondaryContainer + '33',
       alignItems: 'center',
       justifyContent: 'center',
       marginLeft: spacing[1],
@@ -127,9 +152,9 @@ const createStyles = (colors: ThemeColors) =>
       width: 38,
       height: 38,
       borderRadius: borderRadius.full,
-      backgroundColor: colors.background.tertiary,
+      backgroundColor: colors.surfaceContainerHigh,
       alignItems: 'center',
       justifyContent: 'center',
     },
-    sendButtonActive: { backgroundColor: colors.accent.primary },
+    sendButtonActive: { backgroundColor: colors.primary },
   });

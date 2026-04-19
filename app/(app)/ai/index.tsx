@@ -6,185 +6,163 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 
-import { Pressable } from '@/components/ui/Pressable';
+import { MeshGradient } from '@/components/ui/MeshGradient';
+import { GlassCard } from '@/components/ui/GlassCard';
+import { PerformanceMetric } from '@/components/ai/PerformanceMetric';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius, type ThemeColors } from '@/design';
+import { fontFamily, typography } from '@/design/typography';
+import { borderRadius, spacing } from '@/design/spacing';
+import type { ThemeColors } from '@/design/colors';
 
 // ─── Feature card data ────────────────────────────────────────────────────────
 
-interface AIFeature {
+type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+
+interface FeatureCard {
   id: string;
-  icon: React.ComponentProps<typeof MaterialCommunityIcons>['name'];
+  icon: IconName;
   title: string;
   description: string;
-  tint: string;
-  gradientEnd: string;
-  route: string;
 }
 
-function getAIFeatures(colors: ThemeColors): AIFeature[] {
-  return [
-    {
-      id: 'suggestions',
-      icon: 'comment-text-outline',
-      title: 'Sugerencias de Respuesta',
-      description: 'Respuestas generadas por IA basadas en el historial.',
-      tint: colors.accent.purple,
-      gradientEnd: colors.accent.primary,
-      route: '/ai/suggestions',
-    },
-    {
-      id: 'summary',
-      icon: 'text-box-outline',
-      title: 'Resumen de Conversación',
-      description: 'Genera un resumen ejecutivo en un clic.',
-      tint: colors.accent.info,
-      gradientEnd: colors.accent.primary,
-      route: '/ai/summary',
-    },
-    {
-      id: 'classify',
-      icon: 'tag-outline',
-      title: 'Clasificación de Mensajes',
-      description: 'Detecta intención: pregunta, queja, compra.',
-      tint: colors.accent.warning,
-      gradientEnd: colors.accent.error,
-      route: '/ai/classify',
-    },
-    {
-      id: 'chatbot',
-      icon: 'robot',
-      title: 'Estado del Chatbot',
-      description: 'Monitorea canales automatizados por chatbot.',
-      tint: colors.accent.success,
-      gradientEnd: colors.accent.info,
-      route: '/ai/chatbot',
-    },
-  ];
-}
+const FEATURE_CARDS: FeatureCard[] = [
+  {
+    id: 'smart-replies',
+    icon: 'comment-text-outline',
+    title: 'Respuestas inteligentes',
+    description: 'Genera respuestas contextuales basadas en el historial de conversación.',
+  },
+  {
+    id: 'conversation-summary',
+    icon: 'text-box-outline',
+    title: 'Resumen conversación',
+    description: 'Obtén un resumen ejecutivo de cualquier conversación en un clic.',
+  },
+  {
+    id: 'message-classification',
+    icon: 'tag-outline',
+    title: 'Clasificación mensajes',
+    description: 'Detecta intención automáticamente: pregunta, queja, compra.',
+  },
+  {
+    id: 'chatbot-monitor',
+    icon: 'robot-outline',
+    title: 'Monitor chatbot',
+    description: 'Monitorea el estado y rendimiento de canales automatizados.',
+  },
+];
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
 export default function AIScreen() {
-  const router = useRouter();
   const colors = useColors();
   const styles = useMemo(() => createStyles(colors), [colors]);
-  const aiFeatures = useMemo(() => getAIFeatures(colors), [colors]);
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.scrollContent}
-      >
-        {/* ── Header ─────────────────────────────────────────────────────────── */}
-        <Animated.View entering={FadeInDown.duration(400).delay(50)} style={styles.header}>
-          <LinearGradient
-            colors={[colors.accent.purple + '25', colors.accent.purple + '08']}
-            style={styles.headerIconBg}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-          >
-            <MaterialCommunityIcons name="robot" size={28} color={colors.accent.purple} />
-          </LinearGradient>
-          <View style={styles.headerText}>
-            <Text style={styles.title}>Centro IA</Text>
+    <MeshGradient variant="ai">
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={styles.scrollContent}
+        >
+          {/* ── Header ─────────────────────────────────────────────────────────── */}
+          <Animated.View entering={FadeInDown.duration(400).delay(50)} style={styles.header}>
+            <Text style={styles.title}>Centro de Inteligencia Artificial</Text>
             <Text style={styles.subtitle}>
-              Potencia tu CRM con inteligencia artificial
+              Motomoto Core — Optimiza cada interaccion
             </Text>
-          </View>
-        </Animated.View>
+          </Animated.View>
 
-        {/* ── Feature cards ──────────────────────────────────────────────────── */}
-        <View style={styles.featureGrid}>
-          {aiFeatures.map((feature, index) => (
-            <Animated.View
-              key={feature.id}
-              entering={FadeInDown.duration(400).delay(150 + index * 80)}
-              style={styles.featureWrapper}
-            >
-              <Pressable
-                onPress={() => router.push(feature.route as never)}
-                style={styles.featurePressable}
+          {/* ── Feature cards grid (2x2) ───────────────────────────────────────── */}
+          <View style={styles.featureGrid}>
+            {FEATURE_CARDS.map((card, index) => (
+              <Animated.View
+                key={card.id}
+                entering={FadeInDown.duration(400).delay(150 + index * 80)}
+                style={styles.featureWrapper}
               >
-                <LinearGradient
-                  colors={[feature.tint + '15', feature.gradientEnd + '06']}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.featureGradient}
-                >
-                  <View style={[styles.featureIcon, { backgroundColor: feature.tint + '20' }]}>
+                <GlassCard style={styles.featureCard}>
+                  <View style={[styles.featureIcon, { backgroundColor: colors.secondaryContainer + '33' }]}>
                     <MaterialCommunityIcons
-                      name={feature.icon}
+                      name={card.icon}
                       size={24}
-                      color={feature.tint}
+                      color={colors.secondary}
                     />
                   </View>
-                  <Text style={styles.featureTitle}>{feature.title}</Text>
-                  <Text style={styles.featureDesc} numberOfLines={2}>
-                    {feature.description}
+                  <Text style={styles.featureTitle}>{card.title}</Text>
+                  <Text style={styles.featureDesc} numberOfLines={3}>
+                    {card.description}
                   </Text>
-                  <View style={styles.featureArrow}>
-                    <MaterialCommunityIcons
-                      name="arrow-right"
-                      size={16}
-                      color={feature.tint}
-                    />
-                  </View>
-                </LinearGradient>
-              </Pressable>
-            </Animated.View>
-          ))}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+                </GlassCard>
+              </Animated.View>
+            ))}
+          </View>
+
+          {/* ── Performance section ────────────────────────────────────────────── */}
+          <Animated.View entering={FadeInDown.duration(400).delay(500)} style={styles.performanceSection}>
+            <Text style={styles.sectionTitle}>Rendimiento</Text>
+            <View style={styles.metricsRow}>
+              <View style={styles.metricWrapper}>
+                <PerformanceMetric
+                  label="Procesamiento"
+                  value="84%"
+                  progress={0.84}
+                  tint={colors.primary}
+                />
+              </View>
+              <View style={styles.metricWrapper}>
+                <PerformanceMetric
+                  label="Precisión"
+                  value="98.2%"
+                  progress={0.982}
+                  tint={colors.tertiary}
+                />
+              </View>
+              <View style={styles.metricWrapper}>
+                <PerformanceMetric
+                  label="Latencia"
+                  value="140ms"
+                  progress={0.14}
+                  tint={colors.secondary}
+                />
+              </View>
+            </View>
+          </Animated.View>
+        </ScrollView>
+      </SafeAreaView>
+    </MeshGradient>
   );
 }
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: colors.background.primary,
   },
   scrollContent: {
     paddingHorizontal: spacing[4],
     paddingBottom: spacing[24],
-    gap: spacing[5],
+    gap: spacing[6],
   },
 
   /* Header */
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing[3],
     paddingTop: spacing[4],
-  },
-  headerIconBg: {
-    width: 48,
-    height: 48,
-    borderRadius: borderRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerText: {
-    flex: 1,
-    gap: 4,
+    gap: spacing[1],
   },
   title: {
-    ...typography.largeTitle,
-    fontWeight: '700',
-    color: colors.text.primary,
+    fontFamily: fontFamily.displayBold,
+    ...typography.headlineMedium,
+    color: colors.onSurface,
   },
   subtitle: {
-    ...typography.subhead,
-    color: colors.text.secondary,
+    fontFamily: fontFamily.bodyRegular,
+    ...typography.bodyLarge,
+    color: colors.onSurfaceVariant,
   },
 
   /* Feature grid */
@@ -197,14 +175,9 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     width: '47%',
     flexGrow: 1,
   },
-  featurePressable: {
-    flex: 1,
-  },
-  featureGradient: {
+  featureCard: {
     padding: spacing[4],
-    borderRadius: borderRadius.xl,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.separator.transparent,
+    borderRadius: borderRadius.lg,
     gap: spacing[2],
     minHeight: 160,
   },
@@ -216,17 +189,32 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     justifyContent: 'center',
   },
   featureTitle: {
-    ...typography.subhead,
-    fontWeight: '600',
-    color: colors.text.primary,
+    fontFamily: fontFamily.bodySemiBold,
+    ...typography.titleSmall,
+    color: colors.onSurface,
     marginTop: spacing[1],
   },
   featureDesc: {
-    ...typography.caption1,
-    color: colors.text.secondary,
+    fontFamily: fontFamily.bodyRegular,
+    ...typography.bodySmall,
+    color: colors.onSurfaceVariant,
     flex: 1,
   },
-  featureArrow: {
-    alignSelf: 'flex-end',
+
+  /* Performance section */
+  performanceSection: {
+    gap: spacing[3],
+  },
+  sectionTitle: {
+    fontFamily: fontFamily.displaySemiBold,
+    ...typography.titleLarge,
+    color: colors.onSurface,
+  },
+  metricsRow: {
+    flexDirection: 'row',
+    gap: spacing[3],
+  },
+  metricWrapper: {
+    flex: 1,
   },
 });
