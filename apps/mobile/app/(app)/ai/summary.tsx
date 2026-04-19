@@ -9,8 +9,8 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Pressable } from '@/components/ui/Pressable';
 import { useToast } from '@/components/ui/Toast';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius } from '@/design';
-import type { ThemeColors } from '@/design';
+import { spacing, typography, borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 export default function AISummaryScreen() {
   const router = useRouter();

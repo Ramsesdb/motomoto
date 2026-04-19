@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-import { fontFamily, typography } from '@/design/typography';
-import { spacing, borderRadius } from '@/design/spacing';
+import { fontFamily, typography } from '@m2/design';
+import { spacing, borderRadius } from '@m2/design';
 import { useColors } from '@/hooks/useColors';
 import { Pressable } from '@/components/ui/Pressable';
 

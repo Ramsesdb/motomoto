@@ -4,8 +4,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius } from '@/design';
-import type { ThemeColors } from '@/design';
+import { spacing, typography, borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 import { Pressable } from '@/components/ui/Pressable';
 
 interface AISuggestionPillProps {

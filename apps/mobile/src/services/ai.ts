@@ -1,5 +1,5 @@
 import { MOCK_CONVERSATIONS, MOCK_MESSAGES } from '@/mock';
-import type { AIContext, ApiResponse, MessageClassification } from '@/types';
+import type { AIContext, ApiResponse, MessageClassification } from '@m2/types';
 
 export interface ChatbotStatus {
   channelId: string;

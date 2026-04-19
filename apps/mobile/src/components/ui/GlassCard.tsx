@@ -4,8 +4,8 @@ import { BlurView } from 'expo-blur';
 
 import { useColors } from '@/hooks/useColors';
 import { useIsDark } from '@/hooks/useColors';
-import { borderRadius } from '@/design';
-import type { ThemeColors } from '@/design';
+import { borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 interface GlassCardProps {
   children: React.ReactNode;

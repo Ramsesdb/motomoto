@@ -18,8 +18,8 @@ import { Pressable } from '@/components/ui/Pressable';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Avatar } from '@/components/ui/Avatar';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius, type ThemeColors } from '@/design';
-import type { UserRole } from '@/types';
+import { spacing, typography, borderRadius, type ThemeColors } from '@m2/design';
+import type { UserRole } from '@m2/types';
 
 const TOTAL_STEPS = 3;
 

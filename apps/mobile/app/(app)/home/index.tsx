@@ -19,8 +19,8 @@ import { KPICard } from '@/components/ui/KPICard';
 import { AIInsightCard } from '@/components/ai/AIInsightCard';
 import { Pressable } from '@/components/ui/Pressable';
 import { useColors } from '@/hooks/useColors';
-import { spacing, borderRadius, fontFamily, typography } from '@/design';
-import type { ThemeColors } from '@/design';
+import { spacing, borderRadius, fontFamily, typography } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 

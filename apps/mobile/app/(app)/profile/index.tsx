@@ -18,9 +18,9 @@ import { useThemeStore, type ThemePreference } from '@/store/useThemeStore';
 import { Avatar } from '@/components/ui/Avatar';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Pressable } from '@/components/ui/Pressable';
-import { spacing, borderRadius } from '@/design';
-import { fontFamily, typography } from '@/design/typography';
-import type { ThemeColors } from '@/design';
+import { spacing, borderRadius } from '@m2/design';
+import { fontFamily, typography } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 import { useColors } from '@/hooks/useColors';
 
 const ROLE_LABEL: Record<string, string> = {

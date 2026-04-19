@@ -6,8 +6,8 @@ import {
   signInWithEmail as authSignInWithEmail,
   signOut as authSignOut,
 } from '@/services/auth';
-import type { AuthUser, UserRole } from '@/types';
-import { ROLE_HIERARCHY } from '@/types';
+import type { AuthUser, UserRole } from '@m2/types';
+import { ROLE_HIERARCHY } from '@m2/types';
 
 const AUTH_USER_KEY = 'motomoto_auth_user';
 

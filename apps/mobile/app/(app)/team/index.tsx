@@ -15,10 +15,10 @@ import { RoleGate } from '@/components/ui/RoleGate';
 import { AIInsightCard } from '@/components/ai/AIInsightCard';
 import { TeamMemberCard } from '@/components/ui/TeamMemberCard';
 import { useColors } from '@/hooks/useColors';
-import { spacing, borderRadius, type ThemeColors } from '@/design';
-import { fontFamily, typography } from '@/design/typography';
+import { spacing, borderRadius, type ThemeColors } from '@m2/design';
+import { fontFamily, typography } from '@m2/design';
 import { MOCK_AGENT, MOCK_MANAGER, MOCK_ADMIN } from '@/mock';
-import type { User } from '@/types';
+import type { User } from '@m2/types';
 
 interface MemberEntry {
   user: User;

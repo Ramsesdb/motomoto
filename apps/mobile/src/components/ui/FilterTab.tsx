@@ -4,8 +4,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { Pressable } from '@/components/ui/Pressable';
 import { useColors } from '@/hooks/useColors';
-import { fontFamily } from '@/design/typography';
-import { borderRadius, spacing } from '@/design/spacing';
+import { fontFamily } from '@m2/design';
+import { borderRadius, spacing } from '@m2/design';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 

@@ -11,8 +11,8 @@ import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useColors, useIsDark } from '@/hooks/useColors';
 import { triggerHaptic } from '@/hooks/useHaptics';
-import { spacing, typography, borderRadius, fontFamily } from '@/design';
-import type { ThemeColors } from '@/design';
+import { spacing, typography, borderRadius, fontFamily } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 type IconName = React.ComponentProps<typeof MaterialCommunityIcons>['name'];
 

@@ -3,9 +3,9 @@ import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-na
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors } from '@/hooks/useColors';
-import { fontFamily, typography } from '@/design/typography';
-import { spacing, borderRadius } from '@/design/spacing';
-import type { ThemeColors } from '@/design/colors';
+import { fontFamily, typography } from '@m2/design';
+import { spacing, borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 import { Pressable } from '@/components/ui/Pressable';
 import { GlassCard } from '@/components/ui/GlassCard';
 

@@ -13,9 +13,9 @@ import { MeshGradient } from '@/components/ui/MeshGradient';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { PerformanceMetric } from '@/components/ai/PerformanceMetric';
 import { useColors } from '@/hooks/useColors';
-import { fontFamily, typography } from '@/design/typography';
-import { borderRadius, spacing } from '@/design/spacing';
-import type { ThemeColors } from '@/design/colors';
+import { fontFamily, typography } from '@m2/design';
+import { borderRadius, spacing } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 // ─── Feature card data ────────────────────────────────────────────────────────
 

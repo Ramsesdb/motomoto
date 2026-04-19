@@ -21,9 +21,9 @@ import { AISuggestionPill } from '@/components/ai/AISuggestionPill';
 import { AIInsightCard } from '@/components/ai/AIInsightCard';
 import { GlassHeader } from '@/components/navigation/GlassHeader';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius } from '@/design';
-import type { ThemeColors } from '@/design';
-import type { Message, ConversationStatus } from '@/types';
+import { spacing, typography, borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
+import type { Message, ConversationStatus } from '@m2/types';
 
 // ─── Status pill label mapping ────────────────────────────────────────────────
 

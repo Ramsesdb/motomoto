@@ -11,8 +11,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useColors } from '@/hooks/useColors';
-import { borderRadius, spacing } from '@/design';
-import type { ThemeColors } from '@/design';
+import { borderRadius, spacing } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 const DOT_SIZE = 8;
 const BOUNCE_HEIGHT = -6;

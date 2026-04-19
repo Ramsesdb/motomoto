@@ -1,7 +1,7 @@
 import React from 'react';
 
 import { useAuthStore } from '@/store/useAuthStore';
-import type { UserRole } from '@/types';
+import type { UserRole } from '@m2/types';
 
 interface RoleGateProps {
   /** Minimum role required to render children. Uses ROLE_HIERARCHY (≥ comparison). */

@@ -10,8 +10,8 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { useColors } from '@/hooks/useColors';
-import { borderRadius as br, spacing } from '@/design';
-import type { ThemeColors } from '@/design';
+import { borderRadius as br, spacing } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 interface SkeletonProps {
   width?: number | `${number}%`;

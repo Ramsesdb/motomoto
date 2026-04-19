@@ -11,8 +11,8 @@ import {
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors } from '@/hooks/useColors';
-import { fontFamily } from '@/design/typography';
-import { borderRadius } from '@/design/spacing';
+import { fontFamily } from '@m2/design';
+import { borderRadius } from '@m2/design';
 
 // ─── Props ──────────────────────────────────────────────────────────────────
 

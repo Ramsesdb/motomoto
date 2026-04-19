@@ -3,9 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius } from '@/design';
-import type { ThemeColors } from '@/design';
-import type { Message, MessageStatus } from '@/types';
+import { spacing, typography, borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
+import type { Message, MessageStatus } from '@m2/types';
 
 interface MessageBubbleProps {
   message: Message;

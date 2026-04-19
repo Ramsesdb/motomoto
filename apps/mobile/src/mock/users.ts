@@ -1,4 +1,4 @@
-import type { User } from '@/types';
+import type { User } from '@m2/types';
 
 export const MOCK_AGENT: User = {
   id: 'user-001',

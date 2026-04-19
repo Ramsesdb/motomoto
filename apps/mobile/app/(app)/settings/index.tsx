@@ -13,8 +13,8 @@ import Animated, { FadeInDown } from 'react-native-reanimated';
 import { RoleGate } from '@/components/ui/RoleGate';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Pressable } from '@/components/ui/Pressable';
-import { spacing, typography, borderRadius } from '@/design';
-import type { ThemeColors } from '@/design';
+import { spacing, typography, borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 import { useColors } from '@/hooks/useColors';
 
 // --- Setting row ------------------------------------------------------------

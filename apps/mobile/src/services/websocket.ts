@@ -1,4 +1,4 @@
-import type { WebSocketEvent, WebSocketMessage } from '@/types';
+import type { WebSocketEvent, WebSocketMessage } from '@m2/types';
 
 type EventHandler<E extends WebSocketEvent> = (
   payload: Extract<WebSocketMessage, { event: E }>['payload'],

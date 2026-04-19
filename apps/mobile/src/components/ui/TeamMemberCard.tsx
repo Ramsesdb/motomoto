@@ -2,9 +2,9 @@ import React, { useMemo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius } from '@/design';
-import type { ThemeColors } from '@/design';
-import type { User, UserRole } from '@/types';
+import { spacing, typography, borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
+import type { User, UserRole } from '@m2/types';
 import { Avatar } from '@/components/ui/Avatar';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Pressable } from '@/components/ui/Pressable';

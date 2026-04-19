@@ -3,8 +3,8 @@ import { StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors } from '@/hooks/useColors';
-import { borderRadius, spacing } from '@/design';
-import type { ChannelType } from '@/types';
+import { borderRadius, spacing } from '@m2/design';
+import type { ChannelType } from '@m2/types';
 
 interface ChannelBadgeProps {
   channel: ChannelType;

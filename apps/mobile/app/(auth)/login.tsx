@@ -29,7 +29,7 @@ import {
   borderRadius,
   shadows,
   type ThemeColors,
-} from '@/design';
+} from '@m2/design';
 
 export default function LoginScreen() {
   const colors = useColors();

@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 
 import { USE_NATIVE_GOOGLE_SIGNIN } from '@/constants';
 import { MOCK_CURRENT_USER } from '@/mock';
-import type { AuthUser } from '@/types';
+import type { AuthUser } from '@m2/types';
 
 import { AUTH_TOKEN_KEY } from './api';
 

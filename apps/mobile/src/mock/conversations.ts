@@ -1,4 +1,4 @@
-import type { Conversation } from '@/types';
+import type { Conversation } from '@m2/types';
 import { MOCK_AGENT, MOCK_MANAGER } from './users';
 import {
   MOCK_MESSAGES_WA,

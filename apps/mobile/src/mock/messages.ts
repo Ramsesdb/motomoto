@@ -1,4 +1,4 @@
-import type { Message } from '@/types';
+import type { Message } from '@m2/types';
 
 // ─── WhatsApp ─────────────────────────────────────────────────────────────────
 

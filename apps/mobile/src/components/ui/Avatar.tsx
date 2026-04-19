@@ -3,9 +3,9 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 
 import { useColors } from '@/hooks/useColors';
-import { typography } from '@/design';
-import type { ThemeColors } from '@/design';
-import type { UserStatus } from '@/types';
+import { typography } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
+import type { UserStatus } from '@m2/types';
 
 interface AvatarProps {
   name: string;

@@ -4,13 +4,13 @@ import { Swipeable } from 'react-native-gesture-handler';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useColors } from '@/hooks/useColors';
 import { triggerHaptic } from '@/hooks/useHaptics';
-import { spacing, typography, borderRadius } from '@/design';
-import type { ThemeColors } from '@/design';
+import { spacing, typography, borderRadius } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 import { Avatar } from '@/components/ui/Avatar';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { Pressable } from '@/components/ui/Pressable';
 import { ChannelBadge } from '@/components/messaging/ChannelBadge';
-import type { Conversation } from '@/types';
+import type { Conversation } from '@m2/types';
 
 interface ConversationCardProps {
   conversation: Conversation;

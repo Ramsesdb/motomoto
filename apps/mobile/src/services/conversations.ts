@@ -6,7 +6,7 @@ import type {
   MessageAttachment,
   PaginatedResponse,
   PaginationParams,
-} from '@/types';
+} from '@m2/types';
 
 function paginate<T>(items: T[], params?: PaginationParams): PaginatedResponse<T> {
   const page = params?.page ?? 1;

@@ -1,5 +1,5 @@
 import { useAuthStore } from '@/store/useAuthStore';
-import type { UserRole } from '@/types';
+import type { UserRole } from '@m2/types';
 
 /**
  * Returns true if the current user meets or exceeds the given minimum role.

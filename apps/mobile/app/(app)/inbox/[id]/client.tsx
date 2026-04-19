@@ -18,7 +18,7 @@ import { GlassCard } from '@/components/ui/GlassCard';
 import { Pressable } from '@/components/ui/Pressable';
 import { ChannelBadge } from '@/components/messaging/ChannelBadge';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius, type ThemeColors } from '@/design';
+import { spacing, typography, borderRadius, type ThemeColors } from '@m2/design';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 

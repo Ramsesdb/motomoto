@@ -11,8 +11,8 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors } from '@/hooks/useColors';
 import { useIsDark } from '@/hooks/useColors';
-import { borderRadius, spacing, typography } from '@/design';
-import type { ThemeColors } from '@/design';
+import { borderRadius, spacing, typography } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

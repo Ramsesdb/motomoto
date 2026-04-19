@@ -10,7 +10,7 @@ import type {
   Conversation,
   ConversationStatus,
   Message,
-} from '@/types';
+} from '@m2/types';
 
 export interface InboxFilters {
   status?: ConversationStatus;

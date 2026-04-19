@@ -5,9 +5,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
 import { useColors, useIsDark } from '@/hooks/useColors';
-import { fontFamily, typography } from '@/design/typography';
-import { borderRadius, spacing } from '@/design/spacing';
-import type { ThemeColors } from '@/design/colors';
+import { fontFamily, typography } from '@m2/design';
+import { borderRadius, spacing } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
 
 interface GlassHeaderAvatar {
   name: string;

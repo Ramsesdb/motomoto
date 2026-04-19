@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 
-import { darkColors, lightColors, type ThemeColors } from '@/design/colors';
+import { darkColors, lightColors, type ThemeColors } from '@m2/design';
 import { useThemeStore } from '@/store/useThemeStore';
 
 /**

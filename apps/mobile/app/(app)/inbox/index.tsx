@@ -20,9 +20,9 @@ import { ConversationCard } from '@/components/messaging/ConversationCard';
 import { FilterTab } from '@/components/ui/FilterTab';
 import { SkeletonConversationList } from '@/components/ui/Skeleton';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius, fontFamily } from '@/design';
-import type { ThemeColors } from '@/design';
-import type { Conversation, ConversationStatus } from '@/types';
+import { spacing, typography, borderRadius, fontFamily } from '@m2/design';
+import type { ThemeColors } from '@m2/design';
+import type { Conversation, ConversationStatus } from '@m2/types';
 
 // ─── Filter data ──────────────────────────────────────────────────────────────
 

@@ -15,7 +15,7 @@ import { RoleGate } from '@/components/ui/RoleGate';
 import { GlassCard } from '@/components/ui/GlassCard';
 import { useInboxStore } from '@/store/useInboxStore';
 import { useColors } from '@/hooks/useColors';
-import { spacing, typography, borderRadius, type ThemeColors } from '@/design';
+import { spacing, typography, borderRadius, type ThemeColors } from '@m2/design';
 
 // ─── Metric card ──────────────────────────────────────────────────────────────
 

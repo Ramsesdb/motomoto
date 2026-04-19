@@ -1,7 +1,7 @@
 import axios, { AxiosError } from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
-import type { ApiError } from '@/types';
+import type { ApiError } from '@m2/types';
 
 export const API_BASE_URL = 'https://api.motomoto.mx/v1';
 
