@@ -1,17 +1,22 @@
 {
-  "name": "motomoto",
+  "name": "@m2/mobile",
   "version": "1.0.0",
+  "private": true,
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "clean": "rimraf .turbo .expo"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo-google-fonts/manrope": "^0.4.2",
     "@expo/vector-icons": "^15.0.2",
+    "@m2/design": "workspace:*",
+    "@m2/types": "workspace:*",
     "@react-native-google-signin/google-signin": "^16.1.2",
     "axios": "^1.13.6",
     "babel-plugin-module-resolver": "^5.0.3",
@@ -44,6 +49,5 @@
     "@types/react": "~19.2.2",
     "babel-preset-expo": "^55.0.11",
     "typescript": "~5.9.2"
-  },
-  "private": true
+  }
 }
